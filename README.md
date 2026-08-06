@@ -500,3 +500,4 @@ cevabi zaten orada gerekceli olarak yazilidir.
 ## Lisans
 
 AGPL-3.0 — bkz. [LICENSE](LICENSE).
+
