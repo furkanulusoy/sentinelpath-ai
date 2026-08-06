@@ -18,7 +18,7 @@ BILEREK HICBIR WEB FRAMEWORK'UNE (FastAPI, Flask, vb.) BAGIMLI DEGILDIR
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.attack_path_engine.infrastructure.networkx_engine import (
     NetworkXAttackPathEngine,
@@ -112,9 +112,7 @@ class PipelineOrchestrator:
         """
 
         feature_vectors = [
-            self._feature_extractor.extract(
-                host, events, feature_window_start, feature_window_end
-            )
+            self._feature_extractor.extract(host, events, feature_window_start, feature_window_end)
             for host in known_hosts
         ]
 
@@ -137,7 +135,7 @@ class PipelineOrchestrator:
             target_node=start_node,
             risk_scores=tuple(risk_scores),
             recommendations=tuple(recommendations),
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
             pipeline_version=self._config.pipeline_version,
         )
 
@@ -155,7 +153,7 @@ class PipelineOrchestrator:
                 target_node=start_node,
                 predictions=(),
                 model_name=self._prediction_model.model_name(),
-                generated_at=datetime.now(timezone.utc),
+                generated_at=datetime.now(UTC),
             )
         return self._prediction_model.predict(candidate_paths)
 

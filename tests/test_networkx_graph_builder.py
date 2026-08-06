@@ -9,7 +9,7 @@ yerine gercek modul davranisi test ediliyor.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.core.models import (
     EventSource,
@@ -19,7 +19,7 @@ from sentinelpath.core.models import (
 )
 from sentinelpath.graph_builder.infrastructure.networkx_adapter import NetworkXGraphBuilder
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _event(**overrides) -> NormalizedEvent:
@@ -164,7 +164,9 @@ def test_same_host_pair_can_have_multiple_relation_types_in_parallel() -> None:
     builder = NetworkXGraphBuilder()
     events = [
         _event(source=EventSource.AUTH, metadata={"outcome": "success"}),
-        _event(source=EventSource.NETWORK, mitre_technique_id=None, raw_action="tcp_connect:port_9999"),
+        _event(
+            source=EventSource.NETWORK, mitre_technique_id=None, raw_action="tcp_connect:port_9999"
+        ),
     ]
 
     snapshot = builder.build(events=events, feature_vectors=[])
@@ -206,7 +208,9 @@ def test_hosts_seen_only_in_events_are_still_added_as_nodes() -> None:
 
 def test_merge_static_topology_adds_new_edge() -> None:
     builder = NetworkXGraphBuilder()
-    base_snapshot = builder.build(events=[], feature_vectors=[_feature_vector("host-a"), _feature_vector("host-b")])
+    base_snapshot = builder.build(
+        events=[], feature_vectors=[_feature_vector("host-a"), _feature_vector("host-b")]
+    )
 
     merged = builder.merge_static_topology(base_snapshot, topology_edges=[("host-a", "host-b")])
 

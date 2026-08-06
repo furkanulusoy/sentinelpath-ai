@@ -8,18 +8,20 @@ bagimliligindan kacinilir -- bkz. Faz 3'teki ayni desen).
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sentinelpath.baseline_behavior.infrastructure.in_memory_baseline import (
     InMemoryBaselineBehavior,
 )
 from sentinelpath.core.models import EventSource, NormalizedEvent
 
-WINDOW_START = datetime(2026, 1, 1, tzinfo=timezone.utc)
-WINDOW_END = datetime(2026, 1, 15, tzinfo=timezone.utc)  # 14 gunluk pencere
+WINDOW_START = datetime(2026, 1, 1, tzinfo=UTC)
+WINDOW_END = datetime(2026, 1, 15, tzinfo=UTC)  # 14 gunluk pencere
 
 
-def _event(day_offset: int, hour: int, target: str | None = "host-b", **overrides) -> NormalizedEvent:
+def _event(
+    day_offset: int, hour: int, target: str | None = "host-b", **overrides
+) -> NormalizedEvent:
     timestamp = WINDOW_START + timedelta(days=day_offset, hours=hour)
     defaults = dict(
         event_id=f"e-{day_offset}-{hour}",
@@ -67,8 +69,8 @@ def test_typical_active_hours_requires_frequency_above_threshold() -> None:
     profiles = baseline.recompute(events, WINDOW_START, WINDOW_END)
     profile = next(p for p in profiles if p.node_id == "host-a")
 
-    assert 10 in profile.typical_active_hours       # 10/11 = %91 -> tipik
-    assert 3 not in profile.typical_active_hours     # 1/11  = %9  -> esigin altinda
+    assert 10 in profile.typical_active_hours  # 10/11 = %91 -> tipik
+    assert 3 not in profile.typical_active_hours  # 1/11  = %9  -> esigin altinda
 
 
 def test_typical_peer_nodes_requires_recurrence_across_days() -> None:

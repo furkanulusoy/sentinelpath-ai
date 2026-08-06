@@ -33,14 +33,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-
+from enum import StrEnum
 
 # ---------------------------------------------------------------------------
 # 1. Collector asamasi ciktisi
 # ---------------------------------------------------------------------------
 
-class EventSource(str, Enum):
+
+class EventSource(StrEnum):
     """Bir NormalizedEvent'in hangi ham veri kaynagindan geldigini belirtir.
 
     Bunu Enum yapmamizin nedeni: Feature Extraction katmani, kaynaga gore
@@ -81,6 +81,7 @@ class NormalizedEvent:
 # 2. Feature Extraction asamasi ciktisi
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class HostFeatureVector:
     """Belirli bir host icin cikarilan davranissal ozellikler.
@@ -106,7 +107,8 @@ class HostFeatureVector:
 # 3. Graph Builder asamasi ciktisi
 # ---------------------------------------------------------------------------
 
-class RelationType(str, Enum):
+
+class RelationType(StrEnum):
     """Attack graph icindeki edge (kenar) tipleri.
 
     MITRE ATT&CK tactic kategorileriyle kasitli olarak hizalanmistir --
@@ -114,9 +116,9 @@ class RelationType(str, Enum):
     gecilebilir?" sorusu dogrudan cevaplanabilir.
     """
 
-    NETWORK_REACHABLE = "network_reachable"     # topolojik komsuluk
-    AUTHENTICATES_TO = "authenticates_to"        # kullanici -> host
-    TRUSTS = "trusts"                             # host -> host (domain trust vb.)
+    NETWORK_REACHABLE = "network_reachable"  # topolojik komsuluk
+    AUTHENTICATES_TO = "authenticates_to"  # kullanici -> host
+    TRUSTS = "trusts"  # host -> host (domain trust vb.)
     OBSERVED_LATERAL_MOVEMENT = "observed_lateral_movement"
 
 
@@ -155,6 +157,7 @@ class AttackGraphSnapshot:
 # 4. Baseline Behavior asamasi ciktisi
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class BaselineProfile:
     """Bir node (host/user) icin 'normal' davranisin istatistiksel ozeti.
@@ -174,6 +177,7 @@ class BaselineProfile:
 # ---------------------------------------------------------------------------
 # 5. Attack Path Engine asamasi ciktisi (DETERMINISTIK)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class CandidatePath:
@@ -207,13 +211,14 @@ class CandidatePath:
 # 6. Prediction Model asamasi ciktisi (OLASILIKSAL)
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class TechniquePrediction:
     """Belirli bir MITRE ATT&CK teknigi icin modelin urettigi olasilik."""
 
-    technique_id: str          # orn. "T1078"
-    technique_name: str        # orn. "Valid Accounts"
-    probability: float         # 0.0-1.0
+    technique_id: str  # orn. "T1078"
+    technique_name: str  # orn. "Valid Accounts"
+    probability: float  # 0.0-1.0
     contributing_path: CandidatePath
 
 
@@ -228,6 +233,7 @@ class PredictionResult:
 # ---------------------------------------------------------------------------
 # 7. Risk Scoring asamasi ciktisi
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class RiskScore:
@@ -255,6 +261,7 @@ class RiskScore:
 # 8. Recommendation Engine asamasi ciktisi
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class Recommendation:
     technique_id: str
@@ -266,6 +273,7 @@ class Recommendation:
 # ---------------------------------------------------------------------------
 # 9. Reporting asamasi ciktisi
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class SentinelPathReport:

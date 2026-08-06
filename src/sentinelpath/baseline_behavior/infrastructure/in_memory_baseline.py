@@ -71,9 +71,7 @@ class InMemoryBaselineBehavior:
 
         profiles: list[BaselineProfile] = []
         for host, host_events in events_by_host.items():
-            profiles.append(
-                self._build_profile(host, host_events, requested_days)
-            )
+            profiles.append(self._build_profile(host, host_events, requested_days))
 
         # Tam degistirme (full replace): her recompute() cagrisi, bir
         # onceki durumu SIFIRLAR. Kismi/artimli guncelleme YAPILMAZ --

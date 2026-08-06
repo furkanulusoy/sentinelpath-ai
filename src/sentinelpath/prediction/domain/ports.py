@@ -24,9 +24,7 @@ from sentinelpath.core.models import CandidatePath, PredictionResult
 
 
 class PredictionModelPort(Protocol):
-    def predict(
-        self, candidate_paths: list[CandidatePath]
-    ) -> PredictionResult:
+    def predict(self, candidate_paths: list[CandidatePath]) -> PredictionResult:
         """Attack Path Engine'in urettigi yapisal olarak mumkun adaylar
         icinden, her biri icin bir olasilik degeri hesaplar.
 

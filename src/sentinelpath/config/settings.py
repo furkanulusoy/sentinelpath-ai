@@ -48,7 +48,10 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
     log_format: str = Field(
         default="json",
-        description="'json' (structlog, makine-okunur) veya 'console' (insan-okunur, gelistirme icin)",
+        description=(
+            "'json' (structlog, makine-okunur) veya "
+            "'console' (insan-okunur, gelistirme icin)"
+        ),
     )
 
     # --- Veritabani (Faz 2+ icin hazirlik) ---

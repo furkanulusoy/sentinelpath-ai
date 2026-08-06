@@ -10,7 +10,7 @@ icin).
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sentinelpath.collector.infrastructure.packet_record import (
     PacketRecord,
@@ -28,36 +28,54 @@ DB_SERVER = "10.0.0.10"
 FILE_SERVER = "10.0.0.20"
 ALL_HOSTS = [ATTACKER, DB_SERVER, FILE_SERVER]
 
-ATTACK_TIME = datetime(2026, 8, 5, 2, 15, tzinfo=timezone.utc)
-WINDOW_START = datetime(2026, 8, 5, 0, 0, tzinfo=timezone.utc)
-WINDOW_END = datetime(2026, 8, 6, 0, 0, tzinfo=timezone.utc)
+ATTACK_TIME = datetime(2026, 8, 5, 2, 15, tzinfo=UTC)
+WINDOW_START = datetime(2026, 8, 5, 0, 0, tzinfo=UTC)
+WINDOW_END = datetime(2026, 8, 6, 0, 0, tzinfo=UTC)
 BASELINE_START = WINDOW_END - timedelta(days=14)
 
 
 def _build_events() -> list[NormalizedEvent]:
     records = [
         PacketRecord(
-            timestamp=ATTACK_TIME, src_ip=ATTACKER, dst_ip=DB_SERVER,
-            dst_port=3389, protocol=TransportProtocol.TCP, payload_size=512,
+            timestamp=ATTACK_TIME,
+            src_ip=ATTACKER,
+            dst_ip=DB_SERVER,
+            dst_port=3389,
+            protocol=TransportProtocol.TCP,
+            payload_size=512,
         ),
         PacketRecord(
-            timestamp=ATTACK_TIME + timedelta(minutes=5), src_ip=DB_SERVER, dst_ip=FILE_SERVER,
-            dst_port=445, protocol=TransportProtocol.TCP, payload_size=2048,
+            timestamp=ATTACK_TIME + timedelta(minutes=5),
+            src_ip=DB_SERVER,
+            dst_ip=FILE_SERVER,
+            dst_port=445,
+            protocol=TransportProtocol.TCP,
+            payload_size=2048,
         ),
     ]
     network_events = translate_packets(records)
 
     auth_events = [
         NormalizedEvent(
-            event_id="auth-1", timestamp=ATTACK_TIME + timedelta(minutes=1),
-            source=EventSource.AUTH, source_host=ATTACKER, target_host=DB_SERVER,
-            user="svc_admin", raw_action="auth_attempt", mitre_technique_id="T1078",
+            event_id="auth-1",
+            timestamp=ATTACK_TIME + timedelta(minutes=1),
+            source=EventSource.AUTH,
+            source_host=ATTACKER,
+            target_host=DB_SERVER,
+            user="svc_admin",
+            raw_action="auth_attempt",
+            mitre_technique_id="T1078",
             metadata={"outcome": "success"},
         ),
         NormalizedEvent(
-            event_id="auth-2", timestamp=ATTACK_TIME + timedelta(minutes=6),
-            source=EventSource.AUTH, source_host=DB_SERVER, target_host=FILE_SERVER,
-            user="svc_admin", raw_action="auth_attempt", mitre_technique_id="T1078",
+            event_id="auth-2",
+            timestamp=ATTACK_TIME + timedelta(minutes=6),
+            source=EventSource.AUTH,
+            source_host=DB_SERVER,
+            target_host=FILE_SERVER,
+            user="svc_admin",
+            raw_action="auth_attempt",
+            mitre_technique_id="T1078",
             metadata={"outcome": "success"},
         ),
     ]
@@ -73,9 +91,13 @@ def test_full_pipeline_produces_report_with_predicted_technique() -> None:
     events = _build_events()
 
     report = orchestrator.run(
-        events=events, known_hosts=ALL_HOSTS, start_node=ATTACKER,
-        feature_window_start=WINDOW_START, feature_window_end=WINDOW_END,
-        baseline_window_start=BASELINE_START, baseline_window_end=WINDOW_END,
+        events=events,
+        known_hosts=ALL_HOSTS,
+        start_node=ATTACKER,
+        feature_window_start=WINDOW_START,
+        feature_window_end=WINDOW_END,
+        baseline_window_start=BASELINE_START,
+        baseline_window_end=WINDOW_END,
     )
 
     assert report.target_node == ATTACKER
@@ -89,9 +111,13 @@ def test_full_pipeline_produces_recommendations() -> None:
     events = _build_events()
 
     report = orchestrator.run(
-        events=events, known_hosts=ALL_HOSTS, start_node=ATTACKER,
-        feature_window_start=WINDOW_START, feature_window_end=WINDOW_END,
-        baseline_window_start=BASELINE_START, baseline_window_end=WINDOW_END,
+        events=events,
+        known_hosts=ALL_HOSTS,
+        start_node=ATTACKER,
+        feature_window_start=WINDOW_START,
+        feature_window_end=WINDOW_END,
+        baseline_window_start=BASELINE_START,
+        baseline_window_end=WINDOW_END,
     )
 
     assert len(report.recommendations) > 0
@@ -106,9 +132,13 @@ def test_isolated_start_node_yields_empty_report_not_crash() -> None:
     events = _build_events()
 
     report = orchestrator.run(
-        events=events, known_hosts=ALL_HOSTS, start_node="10.0.0.99",  # graf'ta olmayan bir host
-        feature_window_start=WINDOW_START, feature_window_end=WINDOW_END,
-        baseline_window_start=BASELINE_START, baseline_window_end=WINDOW_END,
+        events=events,
+        known_hosts=ALL_HOSTS,
+        start_node="10.0.0.99",  # graf'ta olmayan bir host
+        feature_window_start=WINDOW_START,
+        feature_window_end=WINDOW_END,
+        baseline_window_start=BASELINE_START,
+        baseline_window_end=WINDOW_END,
     )
 
     assert report.target_node == "10.0.0.99"
@@ -123,9 +153,13 @@ def test_orchestrator_output_is_json_serializable() -> None:
     events = _build_events()
 
     report = orchestrator.run(
-        events=events, known_hosts=ALL_HOSTS, start_node=ATTACKER,
-        feature_window_start=WINDOW_START, feature_window_end=WINDOW_END,
-        baseline_window_start=BASELINE_START, baseline_window_end=WINDOW_END,
+        events=events,
+        known_hosts=ALL_HOSTS,
+        start_node=ATTACKER,
+        feature_window_start=WINDOW_START,
+        feature_window_end=WINDOW_END,
+        baseline_window_start=BASELINE_START,
+        baseline_window_end=WINDOW_END,
     )
 
     json_str = orchestrator.to_json(report)
@@ -148,14 +182,22 @@ def test_custom_config_affects_business_hours_classification() -> None:
     )
 
     default_report = default_orchestrator.run(
-        events=events, known_hosts=ALL_HOSTS, start_node=ATTACKER,
-        feature_window_start=WINDOW_START, feature_window_end=WINDOW_END,
-        baseline_window_start=BASELINE_START, baseline_window_end=WINDOW_END,
+        events=events,
+        known_hosts=ALL_HOSTS,
+        start_node=ATTACKER,
+        feature_window_start=WINDOW_START,
+        feature_window_end=WINDOW_END,
+        baseline_window_start=BASELINE_START,
+        baseline_window_end=WINDOW_END,
     )
     wide_hours_report = wide_hours_orchestrator.run(
-        events=events, known_hosts=ALL_HOSTS, start_node=ATTACKER,
-        feature_window_start=WINDOW_START, feature_window_end=WINDOW_END,
-        baseline_window_start=BASELINE_START, baseline_window_end=WINDOW_END,
+        events=events,
+        known_hosts=ALL_HOSTS,
+        start_node=ATTACKER,
+        feature_window_start=WINDOW_START,
+        feature_window_end=WINDOW_END,
+        baseline_window_start=BASELINE_START,
+        baseline_window_end=WINDOW_END,
     )
 
     # Ikisi de gecerli rapor uretmeli (config gercekten kullanildigi

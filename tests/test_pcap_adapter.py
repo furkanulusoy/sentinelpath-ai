@@ -25,8 +25,7 @@ degildir.
 
 from __future__ import annotations
 
-import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -60,7 +59,7 @@ def test_collect_produces_normalized_events(sample_pcap_path: str) -> None:
     assert len(events) == 2
     technique_ids = {e.mitre_technique_id for e in events}
     assert "T1021.001" in technique_ids  # RDP paketi taninmali
-    assert None in technique_ids          # bilinmeyen port da bir event uretmeli
+    assert None in technique_ids  # bilinmeyen port da bir event uretmeli
 
 
 def test_source_name_reports_pcap_path(sample_pcap_path: str) -> None:
@@ -74,7 +73,7 @@ def test_since_filter_excludes_older_events(sample_pcap_path: str) -> None:
     from sentinelpath.collector.infrastructure.pcap_adapter import PcapFileCollector
 
     collector = PcapFileCollector(pcap_path=sample_pcap_path)
-    future_cutoff = datetime.now(timezone.utc).replace(year=2099)
+    future_cutoff = datetime.now(UTC).replace(year=2099)
     events = collector.collect(since=future_cutoff)
     assert events == []  # 2099'dan sonrasi istendigi icin hicbir event kalmamali
 

@@ -41,10 +41,8 @@ TECHNIQUE_MITIGATIONS: dict[str, tuple[str, str, str]] = {
     ),
     "T1021.003": (
         "M1042",
-        "Gerekli olmayan sistemlerde DCOM'u devre disi birakin veya "
-        "kisitlayin.",
-        "T1021.003 (DCOM), varsayilan olarak acik oldugu icin genis bir "
-        "saldiri yuzeyi sunar.",
+        "Gerekli olmayan sistemlerde DCOM'u devre disi birakin veya kisitlayin.",
+        "T1021.003 (DCOM), varsayilan olarak acik oldugu icin genis bir saldiri yuzeyi sunar.",
     ),
     "T1021.004": (
         "M1032",
@@ -57,13 +55,11 @@ TECHNIQUE_MITIGATIONS: dict[str, tuple[str, str, str]] = {
         "M1032",
         "VNC erisiminde MFA zorunlu kilin; VNC'yi mumkunse devre disi "
         "birakip daha guvenli uzak erisim araclariyla degistirin.",
-        "T1021.005 (VNC), genellikle zayif/varsayilan kimlik dogrulama "
-        "kullanir.",
+        "T1021.005 (VNC), genellikle zayif/varsayilan kimlik dogrulama kullanir.",
     ),
     "T1021.006": (
         "M1032",
-        "WinRM erisiminde MFA zorunlu kilin; WinRM'i sadece yonetim "
-        "aglarindan erisilebilir yapin.",
+        "WinRM erisiminde MFA zorunlu kilin; WinRM'i sadece yonetim aglarindan erisilebilir yapin.",
         "T1021.006 (WinRM), yonetimsel uzak erisim sagladigi icin yuksek "
         "etkili bir lateral movement vektorudur.",
     ),

@@ -69,7 +69,9 @@ _STATIC_DASHBOARD_DIR = (
     else Path(__file__).resolve().parent.parent / "static" / "dashboard"
 )
 if _STATIC_DASHBOARD_DIR.exists():
-    app.mount("/dashboard", StaticFiles(directory=str(_STATIC_DASHBOARD_DIR), html=True), name="dashboard")
+    app.mount(
+        "/dashboard", StaticFiles(directory=str(_STATIC_DASHBOARD_DIR), html=True), name="dashboard"
+    )
 
 
 @app.get("/health", response_model=HealthResponse)

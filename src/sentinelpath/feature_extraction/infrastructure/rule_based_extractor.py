@@ -38,7 +38,9 @@ class RuleBasedFeatureExtractor:
     otomatik olarak o tipten sayilir.
     """
 
-    def __init__(self, business_hours_start: int | None = None, business_hours_end: int | None = None) -> None:
+    def __init__(
+        self, business_hours_start: int | None = None, business_hours_end: int | None = None
+    ) -> None:
         # Not: get_settings() SADECE gerektiginde (bir parametre eksikse)
         # cagirilir. Boylece bu sinif, testlerde acik parametrelerle
         # kullanildiginda pydantic-settings'in kurulu olmasini GEREKTIRMEZ
@@ -52,8 +54,16 @@ class RuleBasedFeatureExtractor:
             from sentinelpath.config.settings import get_settings
 
             settings = get_settings()
-            business_hours_start = business_hours_start if business_hours_start is not None else settings.business_hours_start
-            business_hours_end = business_hours_end if business_hours_end is not None else settings.business_hours_end
+            business_hours_start = (
+                business_hours_start
+                if business_hours_start is not None
+                else settings.business_hours_start
+            )
+            business_hours_end = (
+                business_hours_end
+                if business_hours_end is not None
+                else settings.business_hours_end
+            )
 
         self._business_hours_start = business_hours_start
         self._business_hours_end = business_hours_end

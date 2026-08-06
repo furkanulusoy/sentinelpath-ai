@@ -37,9 +37,14 @@ acikca belgeleniyor.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sentinelpath.core.models import CandidatePath, PredictionResult, RelationType, TechniquePrediction
+from sentinelpath.core.models import (
+    CandidatePath,
+    PredictionResult,
+    RelationType,
+    TechniquePrediction,
+)
 
 # Iliski tipi basina, bir hop'un "saldiri-iliskili" agirligini
 # carpan olarak ayarlayan onceki (prior). Degerler kesin bir bilim
@@ -98,7 +103,7 @@ class WeightedMarkovPredictionModel:
         raw_scores: list[float] = []
         for path in candidate_paths:
             score = 1.0
-            for relation, weight in zip(path.hop_relations, path.hop_weights):
+            for relation, weight in zip(path.hop_relations, path.hop_weights, strict=True):
                 score *= weight * self._relation_priors.get(relation, 1.0)
             raw_scores.append(score)
 
@@ -108,7 +113,7 @@ class WeightedMarkovPredictionModel:
         # teknigi gozlemlenmemis) bu asamada elenir -- PredictionResult
         # ozellikle MITRE teknik tahmini icindir (bkz. modul docstring'i).
         scored_predictions: list[tuple[str, CandidatePath, float]] = []
-        for path, raw_score in zip(candidate_paths, raw_scores):
+        for path, raw_score in zip(candidate_paths, raw_scores, strict=True):
             last_hop_techniques = self._last_hop_techniques(path)
             for technique_id in last_hop_techniques:
                 scored_predictions.append((technique_id, path, raw_score))
@@ -118,7 +123,7 @@ class WeightedMarkovPredictionModel:
                 target_node=target_node,
                 predictions=(),
                 model_name=self.model_name(),
-                generated_at=datetime.now(timezone.utc),
+                generated_at=datetime.now(UTC),
             )
 
         # Adim 3: normalize et (toplam = 1.0) ve azalan olasiliga gore sirala.
@@ -143,7 +148,7 @@ class WeightedMarkovPredictionModel:
             target_node=target_node,
             predictions=predictions,
             model_name=self.model_name(),
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
     @staticmethod

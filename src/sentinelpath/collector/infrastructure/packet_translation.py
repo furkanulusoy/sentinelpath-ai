@@ -42,7 +42,10 @@ def _deterministic_event_id(record: PacketRecord) -> str:
     ayni veriyi iki kez saymasin diye onemlidir.
     """
 
-    raw = f"{record.timestamp.isoformat()}|{record.src_ip}|{record.dst_ip}|{record.dst_port}|{record.protocol.value}"
+    raw = (
+        f"{record.timestamp.isoformat()}|{record.src_ip}|{record.dst_ip}|"
+        f"{record.dst_port}|{record.protocol.value}"
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 

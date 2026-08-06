@@ -82,7 +82,7 @@ class NetworkXAttackPathEngine:
             techniques: set[str] = set()
             reason_parts: list[str] = []
 
-            for hop_source, hop_target in zip(path, path[1:]):
+            for hop_source, hop_target in zip(path, path[1:], strict=True):
                 dominant = _dominant_edge_data(multi_graph, hop_source, hop_target)
                 hop_relations.append(dominant["relation"])
                 hop_weights.append(dominant["weight"])
@@ -104,9 +104,7 @@ class NetworkXAttackPathEngine:
 
         return candidates
 
-    def is_reachable(
-        self, graph: AttackGraphSnapshot, source_node: str, target_node: str
-    ) -> bool:
+    def is_reachable(self, graph: AttackGraphSnapshot, source_node: str, target_node: str) -> bool:
         multi_graph = snapshot_to_graph(graph)
         if source_node not in multi_graph or target_node not in multi_graph:
             return False

@@ -6,12 +6,12 @@ tests.test_json_reporting
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.core.models import Recommendation, RiskScore, SentinelPathReport
 from sentinelpath.reporting.infrastructure.json_reporting import JSONReporting
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _report(risk_scores=None, recommendations=None) -> SentinelPathReport:
@@ -27,13 +27,19 @@ def _report(risk_scores=None, recommendations=None) -> SentinelPathReport:
 def test_to_json_produces_valid_parseable_json() -> None:
     reporter = JSONReporting()
     risk_score = RiskScore(
-        target_node="host-b", technique_id="T1078", probability=0.6,
-        asset_criticality=0.8, technique_severity=0.5, score=24.0,
+        target_node="host-b",
+        technique_id="T1078",
+        probability=0.6,
+        asset_criticality=0.8,
+        technique_severity=0.5,
+        score=24.0,
         baseline_confidence=0.07,
     )
     recommendation = Recommendation(
-        technique_id="T1078", mitigation_id="M1032",
-        action="Enforce MFA", rationale="...",
+        technique_id="T1078",
+        mitigation_id="M1032",
+        action="Enforce MFA",
+        rationale="...",
     )
     report = _report(risk_scores=[risk_score], recommendations=[recommendation])
 
@@ -50,8 +56,12 @@ def test_to_json_produces_valid_parseable_json() -> None:
 def test_to_json_handles_none_baseline_confidence() -> None:
     reporter = JSONReporting()
     risk_score = RiskScore(
-        target_node="host-b", technique_id="T1078", probability=0.6,
-        asset_criticality=0.8, technique_severity=0.5, score=24.0,
+        target_node="host-b",
+        technique_id="T1078",
+        probability=0.6,
+        asset_criticality=0.8,
+        technique_severity=0.5,
+        score=24.0,
     )  # baseline_confidence varsayilan olarak None
     report = _report(risk_scores=[risk_score])
 
@@ -65,8 +75,12 @@ def test_navigator_layer_has_required_fields_per_spec() -> None:
 
     reporter = JSONReporting()
     risk_score = RiskScore(
-        target_node="host-b", technique_id="T1078", probability=0.6,
-        asset_criticality=0.8, technique_severity=0.5, score=24.0,
+        target_node="host-b",
+        technique_id="T1078",
+        probability=0.6,
+        asset_criticality=0.8,
+        technique_severity=0.5,
+        score=24.0,
     )
     report = _report(risk_scores=[risk_score])
 
@@ -82,8 +96,12 @@ def test_navigator_layer_has_required_fields_per_spec() -> None:
 def test_navigator_layer_technique_score_matches_risk_score() -> None:
     reporter = JSONReporting()
     risk_score = RiskScore(
-        target_node="host-b", technique_id="T1078", probability=0.6,
-        asset_criticality=0.8, technique_severity=0.5, score=24.0,
+        target_node="host-b",
+        technique_id="T1078",
+        probability=0.6,
+        asset_criticality=0.8,
+        technique_severity=0.5,
+        score=24.0,
     )
     report = _report(risk_scores=[risk_score])
 
@@ -100,8 +118,22 @@ def test_navigator_layer_uses_max_score_for_duplicate_technique() -> None:
 
     reporter = JSONReporting()
     risk_scores = [
-        RiskScore(target_node="host-b", technique_id="T1078", probability=0.3, asset_criticality=0.5, technique_severity=0.5, score=15.0),
-        RiskScore(target_node="host-c", technique_id="T1078", probability=0.9, asset_criticality=0.9, technique_severity=0.5, score=80.0),
+        RiskScore(
+            target_node="host-b",
+            technique_id="T1078",
+            probability=0.3,
+            asset_criticality=0.5,
+            technique_severity=0.5,
+            score=15.0,
+        ),
+        RiskScore(
+            target_node="host-c",
+            technique_id="T1078",
+            probability=0.9,
+            asset_criticality=0.9,
+            technique_severity=0.5,
+            score=80.0,
+        ),
     ]
     report = _report(risk_scores=risk_scores)
 
@@ -137,8 +169,12 @@ def test_navigator_layer_with_no_risk_scores_has_empty_techniques() -> None:
 def test_navigator_layer_technique_metadata_includes_baseline_confidence_when_present() -> None:
     reporter = JSONReporting()
     risk_score = RiskScore(
-        target_node="host-b", technique_id="T1078", probability=0.6,
-        asset_criticality=0.8, technique_severity=0.5, score=24.0,
+        target_node="host-b",
+        technique_id="T1078",
+        probability=0.6,
+        asset_criticality=0.8,
+        technique_severity=0.5,
+        score=24.0,
         baseline_confidence=0.42,
     )
     report = _report(risk_scores=[risk_score])

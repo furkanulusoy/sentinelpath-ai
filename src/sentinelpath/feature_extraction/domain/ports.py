@@ -67,4 +67,3 @@ class FeatureExtractorPort(Protocol):
         hatalardan biridir.
         """
         ...
-

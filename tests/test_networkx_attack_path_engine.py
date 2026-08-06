@@ -7,14 +7,14 @@ networkx bu ortamda kurulu oldugu icin canli calistirilabiliyor.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.attack_path_engine.infrastructure.networkx_engine import (
     NetworkXAttackPathEngine,
 )
 from sentinelpath.core.models import AttackGraphSnapshot, GraphEdge, RelationType
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _snapshot(edges: list[GraphEdge], nodes: tuple[str, ...] | None = None) -> AttackGraphSnapshot:
@@ -42,8 +42,10 @@ def test_unknown_start_node_returns_empty_list() -> None:
 def test_single_hop_path_is_found() -> None:
     engine = NetworkXAttackPathEngine()
     edge = GraphEdge(
-        source_node="host-a", target_node="host-b",
-        relation=RelationType.OBSERVED_LATERAL_MOVEMENT, weight=3.0,
+        source_node="host-a",
+        target_node="host-b",
+        relation=RelationType.OBSERVED_LATERAL_MOVEMENT,
+        weight=3.0,
         mitre_technique_ids=("T1021.001",),
     )
     snapshot = _snapshot([edge])
@@ -61,8 +63,20 @@ def test_single_hop_path_is_found() -> None:
 def test_multi_hop_chain_is_found() -> None:
     engine = NetworkXAttackPathEngine()
     edges = [
-        GraphEdge(source_node="a", target_node="b", relation=RelationType.OBSERVED_LATERAL_MOVEMENT, weight=1.0, mitre_technique_ids=("T1021.001",)),
-        GraphEdge(source_node="b", target_node="c", relation=RelationType.OBSERVED_LATERAL_MOVEMENT, weight=1.0, mitre_technique_ids=("T1021.002",)),
+        GraphEdge(
+            source_node="a",
+            target_node="b",
+            relation=RelationType.OBSERVED_LATERAL_MOVEMENT,
+            weight=1.0,
+            mitre_technique_ids=("T1021.001",),
+        ),
+        GraphEdge(
+            source_node="b",
+            target_node="c",
+            relation=RelationType.OBSERVED_LATERAL_MOVEMENT,
+            weight=1.0,
+            mitre_technique_ids=("T1021.002",),
+        ),
     ]
     snapshot = _snapshot(edges)
 
@@ -95,8 +109,16 @@ def test_dominant_edge_prefers_lateral_movement_over_network_reachable() -> None
 
     engine = NetworkXAttackPathEngine()
     edges = [
-        GraphEdge(source_node="a", target_node="b", relation=RelationType.NETWORK_REACHABLE, weight=10.0),
-        GraphEdge(source_node="a", target_node="b", relation=RelationType.OBSERVED_LATERAL_MOVEMENT, weight=1.0, mitre_technique_ids=("T1021.001",)),
+        GraphEdge(
+            source_node="a", target_node="b", relation=RelationType.NETWORK_REACHABLE, weight=10.0
+        ),
+        GraphEdge(
+            source_node="a",
+            target_node="b",
+            relation=RelationType.OBSERVED_LATERAL_MOVEMENT,
+            weight=1.0,
+            mitre_technique_ids=("T1021.001",),
+        ),
     ]
     snapshot = _snapshot(edges)
 
@@ -140,7 +162,9 @@ def test_no_cycles_in_candidate_paths() -> None:
     engine = NetworkXAttackPathEngine()
     edges = [
         GraphEdge(source_node="a", target_node="b", relation=RelationType.NETWORK_REACHABLE),
-        GraphEdge(source_node="b", target_node="a", relation=RelationType.NETWORK_REACHABLE),  # dongu
+        GraphEdge(
+            source_node="b", target_node="a", relation=RelationType.NETWORK_REACHABLE
+        ),  # dongu
     ]
     snapshot = _snapshot(edges)
 

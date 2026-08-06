@@ -21,7 +21,7 @@ Ozellikle iki seyi dogrulanir:
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -41,7 +41,7 @@ from sentinelpath.core.models import (
     TechniquePrediction,
 )
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def test_normalized_event_can_be_constructed() -> None:

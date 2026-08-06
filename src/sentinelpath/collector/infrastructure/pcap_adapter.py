@@ -19,7 +19,7 @@ teyit edilmelidir (bkz. tests/test_pcap_adapter.py).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.collector.infrastructure.packet_record import (
     PacketRecord,
@@ -83,7 +83,7 @@ class PcapFileCollector:
 
             src_ip = packet[IP].src
             dst_ip = packet[IP].dst
-            pkt_timestamp = datetime.fromtimestamp(float(packet.time), tz=timezone.utc)
+            pkt_timestamp = datetime.fromtimestamp(float(packet.time), tz=UTC)
             payload_size = len(bytes(packet))
 
             if TCP in packet:

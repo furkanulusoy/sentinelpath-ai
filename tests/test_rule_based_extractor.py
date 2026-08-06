@@ -9,21 +9,21 @@ kacinilir -- bkz. sinifin __init__ metodundaki lazy-import yorumu).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.core.models import EventSource, NormalizedEvent
 from sentinelpath.feature_extraction.infrastructure.rule_based_extractor import (
     RuleBasedFeatureExtractor,
 )
 
-WINDOW_START = datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc)
-WINDOW_END = datetime(2026, 1, 2, 0, 0, tzinfo=timezone.utc)
+WINDOW_START = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+WINDOW_END = datetime(2026, 1, 2, 0, 0, tzinfo=UTC)
 
 
 def _event(**overrides) -> NormalizedEvent:
     defaults = dict(
         event_id="e",
-        timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),  # business hours icinde
+        timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=UTC),  # business hours icinde
         source=EventSource.ENDPOINT,
         source_host="host-a",
         target_host="host-b",
@@ -55,7 +55,7 @@ def test_empty_event_list_produces_zeroed_vector() -> None:
 
 def test_events_outside_window_are_excluded() -> None:
     extractor = _extractor()
-    outside_event = _event(timestamp=datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc))
+    outside_event = _event(timestamp=datetime(2025, 12, 1, 10, 0, tzinfo=UTC))
 
     vector = extractor.extract("host-a", [outside_event], WINDOW_START, WINDOW_END)
     assert vector.distinct_users_count == 0  # pencere disinda oldugu icin sayilmamali
@@ -75,7 +75,7 @@ def test_distinct_users_and_targets_are_counted_correctly() -> None:
         _event(user="alice", target_host="host-b"),
         _event(user="bob", target_host="host-c"),
         _event(user="alice", target_host="host-b"),  # tekrar -- tekil sayilmali
-        _event(user=None, target_host=None),           # eksik alanlar sayilmamali
+        _event(user=None, target_host=None),  # eksik alanlar sayilmamali
     ]
 
     vector = extractor.extract("host-a", events, WINDOW_START, WINDOW_END)
@@ -89,8 +89,10 @@ def test_failed_auth_ratio_only_counts_auth_events_with_known_outcome() -> None:
         _event(source=EventSource.AUTH, metadata={"outcome": "failure"}),
         _event(source=EventSource.AUTH, metadata={"outcome": "failure"}),
         _event(source=EventSource.AUTH, metadata={"outcome": "success"}),
-        _event(source=EventSource.AUTH, metadata={}),          # outcome yok -> sayilmaz
-        _event(source=EventSource.ENDPOINT, metadata={"outcome": "failure"}),  # AUTH degil -> sayilmaz
+        _event(source=EventSource.AUTH, metadata={}),  # outcome yok -> sayilmaz
+        _event(
+            source=EventSource.ENDPOINT, metadata={"outcome": "failure"}
+        ),  # AUTH degil -> sayilmaz
     ]
 
     vector = extractor.extract("host-a", events, WINDOW_START, WINDOW_END)
@@ -114,10 +116,10 @@ def test_failed_auth_ratio_is_zero_not_error_when_no_signal() -> None:
 def test_off_hours_activity_ratio() -> None:
     extractor = _extractor()  # business hours: 08-18
     events = [
-        _event(timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)),  # 10:00 -> is saati
-        _event(timestamp=datetime(2026, 1, 1, 3, 0, tzinfo=timezone.utc)),   # 03:00 -> off-hours
-        _event(timestamp=datetime(2026, 1, 1, 22, 0, tzinfo=timezone.utc)),  # 22:00 -> off-hours
-        _event(timestamp=datetime(2026, 1, 1, 14, 0, tzinfo=timezone.utc)),  # 14:00 -> is saati
+        _event(timestamp=datetime(2026, 1, 1, 10, 0, tzinfo=UTC)),  # 10:00 -> is saati
+        _event(timestamp=datetime(2026, 1, 1, 3, 0, tzinfo=UTC)),  # 03:00 -> off-hours
+        _event(timestamp=datetime(2026, 1, 1, 22, 0, tzinfo=UTC)),  # 22:00 -> off-hours
+        _event(timestamp=datetime(2026, 1, 1, 14, 0, tzinfo=UTC)),  # 14:00 -> is saati
     ]
 
     vector = extractor.extract("host-a", events, WINDOW_START, WINDOW_END)
@@ -130,7 +132,7 @@ def test_observed_techniques_are_unique_and_sorted() -> None:
         _event(mitre_technique_id="T1021.001"),
         _event(mitre_technique_id="T1078"),
         _event(mitre_technique_id="T1021.001"),  # tekrar
-        _event(mitre_technique_id=None),           # bilinmiyor -> disarida
+        _event(mitre_technique_id=None),  # bilinmiyor -> disarida
     ]
 
     vector = extractor.extract("host-a", events, WINDOW_START, WINDOW_END)

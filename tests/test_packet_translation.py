@@ -12,7 +12,7 @@ somut faydasidir: bu testler Scapy kurulu olmasa bile calisir.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.collector.infrastructure.packet_record import (
     PacketRecord,
@@ -24,7 +24,7 @@ from sentinelpath.collector.infrastructure.packet_translation import (
 )
 from sentinelpath.core.models import EventSource
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _record(**overrides) -> PacketRecord:
@@ -94,9 +94,9 @@ def test_event_id_differs_for_different_records() -> None:
 
 def test_translate_packets_filters_none_results() -> None:
     records = [
-        _record(dst_port=3389),               # gecerli -> event
+        _record(dst_port=3389),  # gecerli -> event
         _record(src_ip="10.0.0.5", dst_ip="10.0.0.5"),  # self-trafik -> None
-        _record(protocol=TransportProtocol.OTHER),      # ICMP vb. -> None
+        _record(protocol=TransportProtocol.OTHER),  # ICMP vb. -> None
     ]
     events = translate_packets(records)
     assert len(events) == 1

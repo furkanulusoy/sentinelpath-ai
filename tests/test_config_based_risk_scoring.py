@@ -8,39 +8,44 @@ bagimliligindan kacinilir -- bkz. Faz 3/5/7'deki ayni desen).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sentinelpath.core.models import (
     BaselineProfile,
     CandidatePath,
     PredictionResult,
-    RelationType,
     TechniquePrediction,
 )
 from sentinelpath.risk_scoring.infrastructure.config_based_risk_scoring import (
     ConfigBasedRiskScoring,
 )
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _path(nodes) -> CandidatePath:
     return CandidatePath(path_nodes=tuple(nodes), plausible_techniques=(), structural_reason="x")
 
 
-def _prediction(entries: list[tuple[str, float, list[str]]], target_node: str = "host-a") -> PredictionResult:
+def _prediction(
+    entries: list[tuple[str, float, list[str]]], target_node: str = "host-a"
+) -> PredictionResult:
     """entries: (technique_id, probability, path_nodes) uclulerinden PredictionResult kurar."""
 
     predictions = tuple(
         TechniquePrediction(
-            technique_id=tid, technique_name=tid, probability=prob,
+            technique_id=tid,
+            technique_name=tid,
+            probability=prob,
             contributing_path=_path(nodes),
         )
         for tid, prob, nodes in entries
     )
     return PredictionResult(
-        target_node=target_node, predictions=predictions,
-        model_name="test_model", generated_at=NOW,
+        target_node=target_node,
+        predictions=predictions,
+        model_name="test_model",
+        generated_at=NOW,
     )
 
 
@@ -66,9 +71,7 @@ def test_score_uses_path_destination_not_prediction_target_node() -> None:
     prediction.target_node (zaten ele gecirilmis kaynak) DEGIL."""
 
     scorer = _scorer(asset_criticality_map={"host-b": 0.9, "host-c": 0.1})
-    prediction = _prediction(
-        [("T1078", 1.0, ["host-a", "host-b"])], target_node="host-a"
-    )
+    prediction = _prediction([("T1078", 1.0, ["host-a", "host-b"])], target_node="host-a")
 
     scores = scorer.score(prediction)
 
@@ -118,8 +121,11 @@ def test_baseline_confidence_is_attached_when_profiles_provided() -> None:
     prediction = _prediction([("T1078", 1.0, ["host-a", "host-b"])])
     profiles = [
         BaselineProfile(
-            node_id="host-b", baseline_window_days=14,
-            typical_active_hours=(), typical_peer_nodes=(), confidence=0.85,
+            node_id="host-b",
+            baseline_window_days=14,
+            typical_active_hours=(),
+            typical_peer_nodes=(),
+            confidence=0.85,
         )
     ]
 
@@ -142,8 +148,11 @@ def test_baseline_confidence_is_none_for_node_without_profile() -> None:
     prediction = _prediction([("T1078", 1.0, ["host-a", "host-b"])])
     profiles = [
         BaselineProfile(
-            node_id="some-other-host", baseline_window_days=14,
-            typical_active_hours=(), typical_peer_nodes=(), confidence=0.9,
+            node_id="some-other-host",
+            baseline_window_days=14,
+            typical_active_hours=(),
+            typical_peer_nodes=(),
+            confidence=0.9,
         )
     ]
 
@@ -160,10 +169,22 @@ def test_score_does_not_mutate_main_formula_regardless_of_confidence() -> None:
     prediction = _prediction([("T1078", 0.6, ["host-a", "host-b"])])
 
     low_confidence_profile = [
-        BaselineProfile(node_id="host-b", baseline_window_days=14, typical_active_hours=(), typical_peer_nodes=(), confidence=0.01)
+        BaselineProfile(
+            node_id="host-b",
+            baseline_window_days=14,
+            typical_active_hours=(),
+            typical_peer_nodes=(),
+            confidence=0.01,
+        )
     ]
     high_confidence_profile = [
-        BaselineProfile(node_id="host-b", baseline_window_days=14, typical_active_hours=(), typical_peer_nodes=(), confidence=0.99)
+        BaselineProfile(
+            node_id="host-b",
+            baseline_window_days=14,
+            typical_active_hours=(),
+            typical_peer_nodes=(),
+            confidence=0.99,
+        )
     ]
 
     score_low = scorer.score(prediction, baseline_profiles=low_confidence_profile)[0].score

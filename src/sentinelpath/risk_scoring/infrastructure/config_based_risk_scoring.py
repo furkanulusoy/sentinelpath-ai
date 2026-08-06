@@ -36,7 +36,7 @@ TECHNIQUE_SEVERITY: dict[str, float] = {
     "T1021.004": 0.70,  # SSH
     "T1021.005": 0.60,  # VNC
     "T1021.006": 0.70,  # WinRM
-    "T1078": 0.80,      # Valid Accounts -- tespiti en zor, en genis erisim
+    "T1078": 0.80,  # Valid Accounts -- tespiti en zor, en genis erisim
 }
 
 

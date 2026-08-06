@@ -13,8 +13,12 @@ from sentinelpath.recommendation.infrastructure.rule_based_recommender import (
 
 def _risk_score(technique_id: str, score: float, target_node: str = "host-b") -> RiskScore:
     return RiskScore(
-        target_node=target_node, technique_id=technique_id, probability=0.5,
-        asset_criticality=0.5, technique_severity=0.5, score=score,
+        target_node=target_node,
+        technique_id=technique_id,
+        probability=0.5,
+        asset_criticality=0.5,
+        technique_severity=0.5,
+        score=score,
     )
 
 
@@ -77,8 +81,12 @@ def test_all_t1021_subtechniques_have_mappings() -> None:
 
     engine = RuleBasedRecommendationEngine()
     subtechniques = [
-        "T1021.001", "T1021.002", "T1021.003",
-        "T1021.004", "T1021.005", "T1021.006",
+        "T1021.001",
+        "T1021.002",
+        "T1021.003",
+        "T1021.004",
+        "T1021.005",
+        "T1021.006",
     ]
     recs = engine.recommend([_risk_score(t, 10.0) for t in subtechniques])
 

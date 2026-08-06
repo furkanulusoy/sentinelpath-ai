@@ -29,7 +29,7 @@ AttackGraphSnapshot'in immutable deger nesnesi felsefesiyle tutarlidir
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import networkx as nx
 
@@ -81,7 +81,7 @@ def graph_to_snapshot(graph: nx.MultiDiGraph) -> AttackGraphSnapshot:
     return AttackGraphSnapshot(
         nodes=tuple(sorted(graph.nodes)),
         edges=edges,
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
     )
 
 

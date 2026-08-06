@@ -14,6 +14,7 @@ Bu ayrimi ihlal eden bir implementasyon (orn. burada bir olasilik skoru
 hesaplamaya baslamak), ARCHITECTURE.md'de anlatilan acikanabilirlik
 (explainability) faydasini yok eder.
 """
+
 from __future__ import annotations
 
 from typing import Protocol
@@ -39,9 +40,7 @@ class AttackPathEnginePort(Protocol):
         """
         ...
 
-    def is_reachable(
-        self, graph: AttackGraphSnapshot, source_node: str, target_node: str
-    ) -> bool:
+    def is_reachable(self, graph: AttackGraphSnapshot, source_node: str, target_node: str) -> bool:
         """Iki node arasinda herhangi bir yapisal yol olup olmadigini
         hizlica kontrol eder (tam yol listesi gerekmedigi durumlar icin,
         orn. bir onceki tahminin hala gecerli olup olmadigini dogrulama).
