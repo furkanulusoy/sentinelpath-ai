@@ -499,4 +499,4 @@ cevabi zaten orada gerekceli olarak yazilidir.
 
 ## Lisans
 
-MIT — bkz. [LICENSE](LICENSE).
+AGPL-3.0 — bkz. [LICENSE](LICENSE).
