@@ -1,0 +1,43 @@
+version: "3.9"
+
+# Bu MVP asamasinda TEK bir servis var: api. Bir veritabani servisi
+# (postgres) BILEREK eklenmedi -- pyproject.toml'da PostgreSQL
+# bagimliligi listeli olsa da, henuz hicbir fazda gercek bir
+# persistans implementasyonu yazilmadi (bkz. ADR 0012, madde 3).
+# Asagida, o implementasyon yazildiginda kullanilmak uzere bir sablon
+# yorum satiri olarak birakilmistir.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sentinelpath-ai:latest
+    ports:
+      - "8000:8000"
+    environment:
+      SENTINELPATH_ENVIRONMENT: "production"
+      SENTINELPATH_LOG_LEVEL: "INFO"
+      SENTINELPATH_LOG_FORMAT: "json"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # --- GELECEK: persistans implementasyonu yazildiginda ---
+  # db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_DB: sentinelpath
+  #     POSTGRES_USER: sentinelpath
+  #     POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"  # .env dosyasindan, ASLA hardcode edilmez
+  #   volumes:
+  #     - sentinelpath_pgdata:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+# volumes:
+#   sentinelpath_pgdata:

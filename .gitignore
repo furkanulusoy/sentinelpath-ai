@@ -1,0 +1,42 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# --- Test / coverage ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# --- Ortam / gizli bilgiler ---
+# KRITIK: Bu proje bir siber guvenlik araci oldugu icin .env dosyasi
+# gercek ortam bilgisi (host adlari, ic ag topolojisi) icerebilir.
+# Bu dosyanin asla commit edilmemesi, bir "guvenlik araci kendi hedef
+# ortamini sizdirir" senaryosunu onlemek acisindan ozellikle onemlidir.
+.env
+*.local.env
+
+# --- Veri / veritabani ---
+*.db
+*.sqlite3
+/data/raw/
+/data/processed/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+
+# --- OS ---
+.DS_Store
+
+# --- PCAP ---
+*.pcap
+*.pcapng

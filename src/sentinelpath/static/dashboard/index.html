@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SentinelPath AI — Dashboard</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://unpkg.com/vis-network@9/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>SentinelPath AI</h1>
+    <p class="tagline">Predict the attack before it happens.</p>
+  </header>
+
+  <main>
+    <section id="controls">
+      <button id="load-demo-btn">Demo senaryosunu çalıştır</button>
+      <span id="status-text"></span>
+    </section>
+
+    <section id="results" hidden>
+      <div class="panel">
+        <h2>Saldırı grafiği (tahmin edilen sonraki adımlar)</h2>
+        <div id="graph-container"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Risk skorları</h2>
+        <table id="risk-table">
+          <thead>
+            <tr>
+              <th>Hedef host</th>
+              <th>MITRE Teknik</th>
+              <th>Olasılık</th>
+              <th>Varlık kritikliği</th>
+              <th>Teknik şiddeti</th>
+              <th>Risk skoru</th>
+              <th>Baseline güveni</th>
+            </tr>
+          </thead>
+          <tbody id="risk-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Öneriler</h2>
+        <ul id="recommendations-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

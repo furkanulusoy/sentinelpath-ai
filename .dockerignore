@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+
+# --- Test / lint / tip kontrolu ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+tests/
+
+# --- Gelistirme/dokumantasyon (image'a gerekmez) ---
+docs/
+ARCHITECTURE.md
+examples/
+scripts/
+*.md
+
+# --- Ortam / gizli bilgiler ---
+.env
+*.local.env
+
+# --- Git / CI ---
+.git/
+.github/
+.gitignore
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store

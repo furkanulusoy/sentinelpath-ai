@@ -1,0 +1,94 @@
+name: CI
+
+# NOT (bkz. ADR 0012, madde 5): Bu is akisi, gelistirme sirasinda
+# (internet erisimi kapali bir sandbox'ta) sadece sozdizimi seviyesinde
+# dogrulanabilen HER SEYI (Scapy, pydantic, FastAPI bagimli testler)
+# GERCEKTEN calistirir -- GitHub Actions runner'lari gercek internet
+# erisimine sahiptir.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-python:
+    name: Python ${{ matrix.python-version }} testleri
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Python ${{ matrix.python-version }} kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Bagimliliklari kur (TUM opsiyonel gruplar -- gnn haric, bkz. ADR 0012)
+        run: pip install -e ".[dev,api,network,ml]"
+
+      - name: Lint (ruff)
+        run: ruff check src tests
+
+      - name: Tip kontrolu (mypy)
+        run: mypy src
+        continue-on-error: true # NOT: Faz 1-9 boyunca mypy'nin kendisi hic calistirilamadi
+        # (bu sandbox'ta mypy kurulu degildi) -- CI'da ilk kez calisiyor.
+        # Baslangicta continue-on-error: true birakildi ki mevcut tip
+        # hatalari (varsa) CI'i KIRMASIN; bir sonraki PR'da bu satir
+        # kaldirilip mypy zorunlu hale getirilmelidir.
+
+      - name: Testleri calistir (pytest)
+        run: pytest -v
+
+      - name: Wheel paketlemesini dogrula (static dosyalar dahil mi?)
+        # bkz. pyproject.toml notu ve ADR 0012 -- bu sandbox'ta hatchling
+        # kurulu olmadigi icin static/dashboard dosyalarinin wheel'e
+        # dahil edilip edilmedigi test edilemedi. CI bunu ilk kez
+        # gercekten dogruluyor.
+        run: |
+          pip install build
+          python -m build --wheel
+          python -c "
+          import zipfile, glob, sys
+          wheel_path = glob.glob('dist/*.whl')[0]
+          with zipfile.ZipFile(wheel_path) as z:
+              names = z.namelist()
+              dashboard_files = [n for n in names if 'static/dashboard' in n]
+              print('Wheel icindeki dashboard dosyalari:', dashboard_files)
+              assert any(n.endswith('index.html') for n in dashboard_files), 'index.html wheel icinde bulunamadi!'
+          "
+
+  test-dashboard-js:
+    name: Dashboard JS testleri (Node.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Saf JS fonksiyon testlerini calistir
+        run: node tests/dashboard/test_app_pure_functions.js
+
+  docker-build:
+    name: Docker image build dogrulamasi
+    runs-on: ubuntu-latest
+    needs: [test-python]
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Docker image olustur (calistirma degil, sadece build)
+        run: docker build -t sentinelpath-ai:ci-check .

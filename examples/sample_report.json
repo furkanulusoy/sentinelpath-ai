@@ -1,0 +1,39 @@
+{
+  "target_node": "10.0.0.50",
+  "risk_scores": [
+    {
+      "target_node": "10.0.0.20",
+      "technique_id": "T1021.002",
+      "probability": 0.75,
+      "asset_criticality": 0.95,
+      "technique_severity": 0.75,
+      "score": 53.43749999999999,
+      "baseline_confidence": null
+    },
+    {
+      "target_node": "10.0.0.10",
+      "technique_id": "T1021.001",
+      "probability": 0.25,
+      "asset_criticality": 0.9,
+      "technique_severity": 0.7,
+      "score": 15.75,
+      "baseline_confidence": 0.07142857142857142
+    }
+  ],
+  "recommendations": [
+    {
+      "technique_id": "T1021.002",
+      "mitigation_id": "M1030",
+      "action": "SMB/Windows Admin Shares erisimini ag segmentasyonuyla sinirlayin; yonetici paylasimlarina erisimi sadece gerekli yonetici hesaplariyla kisitlayin.",
+      "rationale": "T1021.002, genis yetkili 'admin shares' erisimini kotuye kullanir. Ag segmentasyonu, ele gecirilmis bir host'un yatay hareketini sinirlar."
+    },
+    {
+      "technique_id": "T1021.001",
+      "mitigation_id": "M1032",
+      "action": "RDP erisimini MFA ile koruyun; RDP'yi dogrudan internete acmayin, sadece jump host/bastion uzerinden erisime izin verin.",
+      "rationale": "T1021.001 (RDP), calinti veya zayif kimlik bilgileriyle kotuye kullanilabilir. MFA bu riski onemli olcude azaltir."
+    }
+  ],
+  "generated_at": "2026-08-05T17:40:27.858472+00:00",
+  "pipeline_version": "0.1.0"
+}

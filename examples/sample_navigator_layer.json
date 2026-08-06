@@ -1,0 +1,99 @@
+{
+  "name": "SentinelPath AI - 10.0.0.50",
+  "versions": {
+    "navigator": "4.9.1",
+    "layer": "4.5"
+  },
+  "domain": "enterprise-attack",
+  "description": "SentinelPath AI tarafindan 2026-08-05T17:40:27.858472+00:00 tarihinde, 10.0.0.50 icin uretilen attack path tahmini (pipeline v0.1.0).",
+  "sorting": 3,
+  "layout": {
+    "layout": "side",
+    "showID": true,
+    "showName": true,
+    "showAggregateScores": true,
+    "aggregateFunction": "max"
+  },
+  "techniques": [
+    {
+      "techniqueID": "T1021.002",
+      "score": 53.4,
+      "color": "",
+      "comment": "SentinelPath AI tahmini -- hedef: 10.0.0.20, kaynak: 10.0.0.50",
+      "enabled": true,
+      "showSubtechniques": true,
+      "metadata": [
+        {
+          "name": "hedef_host",
+          "value": "10.0.0.20"
+        },
+        {
+          "name": "olasilik",
+          "value": "0.75"
+        },
+        {
+          "name": "varlik_kritikligi",
+          "value": "0.95"
+        },
+        {
+          "name": "teknik_siddeti",
+          "value": "0.75"
+        }
+      ]
+    },
+    {
+      "techniqueID": "T1021.001",
+      "score": 15.8,
+      "color": "",
+      "comment": "SentinelPath AI tahmini -- hedef: 10.0.0.10, kaynak: 10.0.0.50",
+      "enabled": true,
+      "showSubtechniques": true,
+      "metadata": [
+        {
+          "name": "hedef_host",
+          "value": "10.0.0.10"
+        },
+        {
+          "name": "olasilik",
+          "value": "0.25"
+        },
+        {
+          "name": "varlik_kritikligi",
+          "value": "0.90"
+        },
+        {
+          "name": "teknik_siddeti",
+          "value": "0.70"
+        },
+        {
+          "name": "baseline_guveni",
+          "value": "0.07"
+        }
+      ]
+    }
+  ],
+  "gradient": {
+    "colors": [
+      "#8ec843",
+      "#ffe766",
+      "#ff6666"
+    ],
+    "minValue": 0,
+    "maxValue": 100
+  },
+  "legendItems": [
+    {
+      "label": "Dusuk risk",
+      "color": "#8ec843"
+    },
+    {
+      "label": "Orta risk",
+      "color": "#ffe766"
+    },
+    {
+      "label": "Yuksek risk",
+      "color": "#ff6666"
+    }
+  ],
+  "showTacticRowBackground": false
+}
