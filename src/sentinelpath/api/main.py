@@ -70,7 +70,9 @@ _STATIC_DASHBOARD_DIR = (
 )
 if _STATIC_DASHBOARD_DIR.exists():
     app.mount(
-        "/dashboard", StaticFiles(directory=str(_STATIC_DASHBOARD_DIR), html=True), name="dashboard"
+        "/dashboard",
+        StaticFiles(directory=str(_STATIC_DASHBOARD_DIR), html=True),
+        name="dashboard",
     )
 
 
