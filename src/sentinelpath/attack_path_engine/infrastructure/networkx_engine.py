@@ -82,7 +82,7 @@ class NetworkXAttackPathEngine:
             techniques: set[str] = set()
             reason_parts: list[str] = []
 
-            for hop_source, hop_target in zip(path, path[1:], strict=True):
+            for hop_source, hop_target in zip(path, path[1:], strict=False):
                 dominant = _dominant_edge_data(multi_graph, hop_source, hop_target)
                 hop_relations.append(dominant["relation"])
                 hop_weights.append(dominant["weight"])
