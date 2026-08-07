@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Predict the attack before it happens — an AI-assisted attack path prediction engine grounded in MITRE ATT&CK."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-authors = [{ name = "SentinelPath AI Contributors" }]
+license = "AGPL-3.0-or-later"
+authors = [{ name = "Furkan Ulusoy" }]
 
 # --- Bagimlilik gerekcesi ---
 # Bu Faz 1'de dependency GRUPLARI tanimlanir; her fazda o faza ozel

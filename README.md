@@ -27,6 +27,19 @@ kullanici kitlesi icin proje kok dizinindeki tasarim notlarina bakiniz.
 
 ## Mimari
 
+```mermaid
+flowchart LR
+    A[Collector<br/>pcap/log verisi] --> B[Feature Extraction]
+    B --> C[Graph Builder<br/>Attack Graph]
+    C --> D[Baseline Behavior]
+    C --> E[Attack Path Engine<br/>deterministik]
+    E --> F[Prediction Model<br/>Weighted Markov]
+    F --> G[Risk Scoring]
+    D -.baseline güveni.-> G
+    G --> H[Recommendation Engine]
+    H --> I[Reporting<br/>JSON + ATT&CK Navigator]
+```
+
 Sistem, **Hexagonal Architecture (Ports & Adapters)** ile **pipeline veri
 akisini** birlestiren bir mimariyle tasarlanmistir. Detayli diyagram,
 katman gerekceleri ve Architecture Decision Record'lar icin bkz.
@@ -355,6 +368,11 @@ Sistem promptunda tanımlanan 10 fazlık yol haritasının **ilk 8 fazı**
 `scripts/demo_end_to_end.py` ile gösterilmektedir. Faz 9 (Dashboard) ve
 Faz 10 (Deployment), README'nin "Gelecek Planı" bölümünde ele
 alınmaktadır.
+
+> Kod tabanı ve testler tamamlanmıştır (CI: passing, 111 test). Sistem 
+> gerçek network trafiğiyle (Wireshark capture) uçtan uca doğrulanmıştır, 
+> ancak büyük ölçekli, gerçek bir üretim ortamında henüz kanıtlanmamıştır. 
+> Bkz. "Bilinen Sınırlamalar" ve "Gelecek Planı" bölümleri.
 
 ### Dashboard — Faz 9
 
