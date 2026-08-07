@@ -20,6 +20,7 @@ ARCHITECTURE.md
 examples/
 scripts/
 *.md
+!README.md
 
 # --- Ortam / gizli bilgiler ---
 .env
