@@ -23,7 +23,7 @@ WORKDIR /build
 # Once sadece bagimlilik tanimlarini kopyala -- Docker layer cache'i
 # sayesinde, kaynak kod degistiginde bagimliliklarin yeniden kurulmasi
 # GEREKMEZ (sadece pyproject.toml degisirse yeniden kurulur).
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 COPY src ./src
 
 # Venv icinde kur (sistem Python'unu kirletmemek icin) -- api ekstra
