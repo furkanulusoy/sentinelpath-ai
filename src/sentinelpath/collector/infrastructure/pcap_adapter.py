@@ -89,11 +89,14 @@ class PcapFileCollector:
             if TCP in packet:
                 protocol = TransportProtocol.TCP
                 dst_port = int(packet[TCP].dport)
+                tcp_flags = packet[TCP].flags
+                is_new_connection = ("S" in tcp_flags) and ("A" not in tcp_flags)
             elif UDP in packet:
                 protocol = TransportProtocol.UDP
                 dst_port = int(packet[UDP].dport)
+                is_new_connection = True
             else:
-                continue  # Faz 2 kapsami TCP/UDP ile sinirli (bkz. ARCHITECTURE.md gerekcesi)
+                continue
 
             records.append(
                 PacketRecord(
@@ -103,6 +106,7 @@ class PcapFileCollector:
                     dst_port=dst_port,
                     protocol=protocol,
                     payload_size=payload_size,
+                    is_new_connection=is_new_connection,
                 )
             )
 

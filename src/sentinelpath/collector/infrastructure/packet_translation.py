@@ -62,6 +62,8 @@ def translate_packet(record: PacketRecord) -> NormalizedEvent | None:
         return None
     if record.src_ip == record.dst_ip:
         return None
+    if record.protocol is TransportProtocol.TCP and not record.is_new_connection:
+        return None
 
     known_service = PORT_TO_TECHNIQUE.get(record.dst_port)
     if known_service is not None:

@@ -523,6 +523,15 @@ Tahminler (10.0.0.50 icin, azalan olasilikla):
 Bu, hiçbir eğitim verisi olmadan, sadece gözlemlenen graf ağırlıklarından
 ve MITRE ATT&CK ilişkilendirmesinden türetildi (bkz. ADR 0009).
 
+### Gerçek Lab Doğrulaması
+
+Sistem, kendi VirtualBox lab ortamında (host → Windows 10 → Windows 
+Server 2022, SMB + RDP zinciri) gerçek network trafiğiyle uçtan uca 
+test edildi. Pipeline, gözlemlenen kanıt hacmine göre saldırganın 
+Windows Server'a kadar ilerlediğini doğru şekilde öngördü (T1021.001, 
+%100 göreli olasılık, düşük baseline güveniyle birlikte dürüstçe 
+işaretlenmiş).
+
 ## Gelecek Plani
 
 - MITRE ATT&CK Navigator ile tam uyumlu layer export'u

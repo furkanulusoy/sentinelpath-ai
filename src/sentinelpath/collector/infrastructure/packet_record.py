@@ -47,3 +47,4 @@ class PacketRecord:
     dst_port: int
     protocol: TransportProtocol
     payload_size: int = 0
+    is_new_connection: bool = True
