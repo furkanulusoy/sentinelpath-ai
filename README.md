@@ -1,8 +1,17 @@
 # SentinelPath AI
 
 ![CI](https://github.com/furkanulusoy/sentinelpath-ai/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 **Predict the attack before it happens.**
+
+### Neden SentinelPath AI?
+
+✓ Saldırganın bir sonraki adımını tahmin eder — sadece geçmiş olayı raporlamaz
+✓ MITRE ATT&CK'e doğrudan bağlı — her tahmin bir teknik ID'sine karşılık gelir
+✓ Açıklanabilir risk skorlama — her sayının arkasında izlenebilir bir gerekçe var
 
 SentinelPath AI, ag topolojisi, host iliskileri, kullanici davranislari ve
 gecmis saldiri verilerini analiz ederek, olasi bir saldirganin bir sonraki
@@ -363,7 +372,7 @@ tersi yönde tasarlandı (bizim bağlamımızda yüksek skor = kötü = kırmız
 
 ## MVP Tamamlandı
 
-Sistem promptunda tanımlanan 10 fazlık yol haritasının **ilk 8 fazı**
+Proje, 10 fazlık bir geliştirme yol haritasını takip etti; ilk 8 fazı
 (MVP kapsamı) tamamlanmıştır. Uçtan uca çalışan pipeline
 `scripts/demo_end_to_end.py` ile gösterilmektedir. Faz 9 (Dashboard) ve
 Faz 10 (Deployment), README'nin "Gelecek Planı" bölümünde ele
@@ -490,16 +499,29 @@ desenini takip eder. Gerekce icin bkz. ARCHITECTURE.md, bolum 4.
 | 9 | Dashboard (PipelineOrchestrator + FastAPI + statik HTML/JS) | ✅ Tamamlandi |
 | 10 | Deployment (Docker + docker-compose + GitHub Actions CI) | ✅ Tamamlandi |
 
-**Sistem promptunda tanımlanan 10 fazlık yol haritası tamamlanmıştır.**
+**Proje, 10 fazlık geliştirme yol haritasının tamamını tamamladı.**
+
+> Kod tabanı ve testler tamamlanmıştır (CI: passing, 111 test). Sistem
+> gerçek network trafiğiyle (Wireshark capture) uçtan uca doğrulanmıştır,
+> ancak büyük ölçekli, gerçek bir üretim ortamında henüz kanıtlanmamıştır.
+> Bkz. "Gelecek Planı" bölümü.
 
 Her faz sonunda bagimsiz calisabilen bir urun ortaya cikacak sekilde
 ilerlenmektedir; bir sonraki faza gecmeden once bu README ve
 ARCHITECTURE.md guncellenir.
 
-## Ornek Cikti
+## Örnek Çıktı
 
-> Faz 6-8 tamamlandiginda, ornek bir `PredictionResult` → `SentinelPathReport`
-> ciktisi buraya eklenecektir.
+`scripts/demo_end_to_end.py`'nin gerçek çalıştırılmasından alınmış çıktı
+(RDP + SMB tabanlı bir lateral movement senaryosu):
+
+Model: weighted_markov_v1
+Tahminler (10.0.0.50 icin, azalan olasilikla):
+%75.0 T1021.002 Remote Services: SMB/Windows Admin Shares
+%25.0 T1021.001 Remote Services: Remote Desktop Protocol
+
+Bu, hiçbir eğitim verisi olmadan, sadece gözlemlenen graf ağırlıklarından
+ve MITRE ATT&CK ilişkilendirmesinden türetildi (bkz. ADR 0009).
 
 ## Gelecek Plani
 
