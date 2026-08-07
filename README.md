@@ -1,5 +1,7 @@
 # SentinelPath AI
 
+![CI](https://github.com/furkanulusoy/sentinelpath-ai/actions/workflows/ci.yml/badge.svg)
+
 **Predict the attack before it happens.**
 
 SentinelPath AI, ag topolojisi, host iliskileri, kullanici davranislari ve
