@@ -5,90 +5,79 @@
 ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**Predict the attack before it happens.**
+**Predict the attacker's next move — with explainable, evidence-based probabilities.**
 
-### Neden SentinelPath AI?
+[Türkçe README](README_TR.md)
 
-✓ Saldırganın bir sonraki adımını tahmin eder — sadece geçmiş olayı raporlamaz
-✓ MITRE ATT&CK'e doğrudan bağlı — her tahmin bir teknik ID'sine karşılık gelir
-✓ Açıklanabilir risk skorlama — her sayının arkasında izlenebilir bir gerekçe var
+## Why SentinelPath AI?
 
-SentinelPath AI, ag topolojisi, host iliskileri, kullanici davranislari ve
-gecmis saldiri verilerini analiz ederek, olasi bir saldirganin bir sonraki
-adimini **MITRE ATT&CK** teknikleriyle iliskilendirilmis olasilik degerleri
-ile tahmin eden bir attack path prediction motorudur.
+✓ Ranks the most likely next attack techniques from a partially observed attack path
+✓ Grounded in MITRE ATT&CK — every prediction maps to a technique ID
+✓ Explainable risk scoring — every number has a traceable rationale
 
-> Bu bir anomali/alarm sistemi degildir. Amac "ne oldu"yu tespit etmek
-> degil, gozlemlenen kismi saldiri zincirinden **"sirada ne var?"**
-> sorusuna, izlenebilir ve acikanabilir bir sekilde cevap vermektir.
+Many security monitoring and detection platforms are optimized
+primarily for identifying and responding to observed or ongoing
+activity, and modern EDR/NDR products increasingly include behavioral
+detection, threat hunting, and anomaly-scoring capabilities. SentinelPath
+AI explores a complementary question that most of these tools don't
+expose directly to the user: **given a partially observed attack path,
+which technique is most likely to occur next, and why?** Academic
+attack-graph research (MulVAL, TVA) tends to rely on static
+vulnerability graphs; SentinelPath AI instead builds a continuously
+updated *behavioral* attack graph and ranks candidate next steps
+probabilistically against it, with every ranking traceable back to
+observed evidence.
 
-## Neden SentinelPath AI?
+> This is not an anomaly/alerting system. The goal is not to detect
+> "what happened," but to answer, in a traceable and explainable way,
+> **"what's next?"** given a partially observed attack chain.
 
-Bugunku IDS/IPS/EDR/NDR cozumleri buyuk olcude reaktiftir — saldiri
-gerceklestikten sonra alarm uretirler. Attack graph literaturu (MulVAL,
-TVA) genelde statik zafiyet grafigine dayanir; endustriyel EDR/NDR
-urunleri ise davranissaldir ama grafiksel degildir. SentinelPath AI bu
-ikisinin kesisimini hedefler: **surekli guncellenen bir davranissal
-attack graph uzerinde, olasiliksal, MITRE ATT&CK'e baglanmis tahmin.**
-
-Detayli problem analizi, alternatif cozumlerin karsilastirmasi ve hedef
-kullanici kitlesi icin proje kok dizinindeki tasarim notlarina bakiniz.
-
-## Mimari
+## Architecture
 
 ```mermaid
 flowchart LR
-    A[Collector<br/>pcap/log verisi] --> B[Feature Extraction]
+    A[Collector<br/>pcap data] --> B[Feature Extraction]
     B --> C[Graph Builder<br/>Attack Graph]
-    C --> D[Baseline Behavior]
-    C --> E[Attack Path Engine<br/>deterministik]
+    A -.raw events, multi-day.-> D[Baseline Behavior]
+    C --> E[Attack Path Engine<br/>deterministic]
     E --> F[Prediction Model<br/>Weighted Markov]
     F --> G[Risk Scoring]
-    D -.baseline güveni.-> G
+    D -.baseline confidence.-> G
     G --> H[Recommendation Engine]
     H --> I[Reporting<br/>JSON + ATT&CK Navigator]
 ```
 
-Sistem, **Hexagonal Architecture (Ports & Adapters)** ile **pipeline veri
-akisini** birlestiren bir mimariyle tasarlanmistir. Detayli diyagram,
-katman gerekceleri ve Architecture Decision Record'lar icin bkz.
+Note that Baseline Behavior consumes the raw event stream directly (not
+the built graph) over a wider, multi-day window — see ADR 0006.
+
+The system follows **Hexagonal Architecture (Ports & Adapters)** combined
+with a pipeline data flow. For the full diagram, layer-by-layer
+rationale, and Architecture Decision Records, see
 **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
-Ozet akis:
-
-```
-Data Sources → Collector → Feature Extraction → Graph Builder
-→ Baseline Behavior ⇄ Attack Path Engine → Prediction Model
-→ Risk Scoring → Recommendation Engine → Reporting
-```
-
-## Kurulum
-
-> Sistem promptunda tanımlanan 10 fazlık yol haritasının tamamı
-> tamamlanmıştır (bkz. Faz Haritası). Aşağıdaki kurulum adımları güncel
-> ve çalışan pipeline için geçerlidir.
+## Installation
 
 ```bash
-# Sanal ortam olustur
+# Create a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# Cekirdek bagimliliklari kur
+# Install core dependencies
 pip install -e .
 
-# Gelistirme bagimliliklarini da eklemek icin
+# Add development dependencies
 pip install -e ".[dev]"
 
-# Ozellik gruplarina gore (ihtiyaca gore):
+# Optional feature groups (as needed):
 pip install -e ".[api]"      # FastAPI + uvicorn
-pip install -e ".[network]"  # Scapy (pasif ag kesfi icin)
+pip install -e ".[network]"  # Scapy (for passive network parsing)
 pip install -e ".[ml]"       # scikit-learn, xgboost
-pip install -e ".[gnn]"      # torch (Graph Neural Network, Faz 6+)
+pip install -e ".[gnn]"      # torch (Graph Neural Network, Phase 6+)
 ```
 
-Ortam degiskenleri icin `.env` dosyasi olusturun (bkz.
-`src/sentinelpath/config/settings.py` icin desteklenen alanlar,
-`SENTINELPATH_` on ekiyle):
+For environment variables, create a `.env` file (see
+`src/sentinelpath/config/settings.py` for supported fields, all
+prefixed with `SENTINELPATH_`):
 
 ```env
 SENTINELPATH_ENVIRONMENT=development
@@ -96,21 +85,20 @@ SENTINELPATH_LOG_LEVEL=INFO
 SENTINELPATH_LOG_FORMAT=console
 ```
 
-## Kullanim
+## Usage
 
-### Testleri calistirma
+### Running the tests
 
 ```bash
 pip install -e ".[dev]"
-pytest                                        # tum Python testleri
-
-node tests/dashboard/test_app_pure_functions.js  # dashboard JS testleri (Node.js gerektirir)
+pytest                                            # all Python tests
+node tests/dashboard/test_app_pure_functions.js   # dashboard JS tests (requires Node.js)
 ```
 
-### Network Parser (Collector) — Faz 2
+### Network Parser (Collector) — Phase 2
 
-`.pcap` dosyasini `NormalizedEvent` listesine ceviren ilk somut Collector
-adaptoru kullanima hazir. Scapy'ye ihtiyac duyar:
+The first concrete Collector adapter turns a `.pcap` file into a list
+of `NormalizedEvent`. Requires Scapy:
 
 ```bash
 pip install -e ".[network]"
@@ -126,7 +114,7 @@ for event in events:
     print(event.source_host, "->", event.target_host, event.raw_action, event.mitre_technique_id)
 ```
 
-Ornek cikti (RDP ve SMB trafigi iceren bir capture icin):
+Example output (for a capture containing RDP and SMB traffic):
 
 ```
 10.0.0.5 -> 10.0.0.10 tcp_connect:rdp T1021.001
@@ -134,16 +122,16 @@ Ornek cikti (RDP ve SMB trafigi iceren bir capture icin):
 10.0.0.7 -> 10.0.0.10 tcp_connect:port_8080 None
 ```
 
-**Mimari not:** Bu adaptorun ic tasarimi (Scapy'ye bagimli I/O'nun
-domain cevirme mantigindan ayrilmasi) icin bkz.
+**Design note:** for the split between Scapy-dependent I/O and pure
+translation logic, see
 [ADR 0003](docs/adr/0003-pure-translation-vs-framework-io-split.md).
-Ceviri mantigi (`packet_translation.py`), Scapy KURULU OLMASA BILE
-`tests/test_packet_translation.py` ile test edilebilir.
+The translation logic (`packet_translation.py`) is testable via
+`tests/test_packet_translation.py` even when Scapy is **not** installed.
 
-### Feature Extraction — Faz 3
+### Feature Extraction — Phase 3
 
-`NormalizedEvent` listesinden `HostFeatureVector` üreten kural-tabanlı
-(pandas gerektirmeyen) extractor:
+A rule-based (no pandas required) extractor that turns a list of
+`NormalizedEvent` into a `HostFeatureVector`:
 
 ```python
 from datetime import datetime, timezone
@@ -151,10 +139,10 @@ from sentinelpath.feature_extraction.infrastructure.rule_based_extractor import 
     RuleBasedFeatureExtractor,
 )
 
-extractor = RuleBasedFeatureExtractor()  # settings'ten is-saati varsayilanlarini okur
+extractor = RuleBasedFeatureExtractor()  # reads business-hour defaults from settings
 vector = extractor.extract(
     host_id="10.0.0.5",
-    events=events,  # Faz 2'nin PcapFileCollector'indan gelen NormalizedEvent listesi
+    events=events,  # NormalizedEvent list, e.g. from Phase 2's PcapFileCollector
     window_start=datetime(2026, 1, 1, tzinfo=timezone.utc),
     window_end=datetime(2026, 1, 2, tzinfo=timezone.utc),
 )
@@ -162,22 +150,21 @@ vector = extractor.extract(
 print(vector.distinct_users_count, vector.failed_auth_ratio, vector.observed_techniques)
 ```
 
-Ornek cikti:
+Example output:
 
 ```
 distinct_users_count=2 failed_auth_ratio=0.33 observed_techniques=('T1021.001', 'T1021.002')
 ```
 
-**Mimari not:** `FeatureExtractorPort` imzasina Faz 3'te açık bir zaman
-penceresi eklendi — gerekçesi için bkz.
-[ADR 0004](docs/adr/0004-explicit-feature-window.md). Pandas'a karşı
-saf-Python seçiminin gerekçesi için ARCHITECTURE.md, Faz 3 notlarına
-bakınız.
+**Design note:** `FeatureExtractorPort` gained an explicit time window
+in Phase 3 — see [ADR 0004](docs/adr/0004-explicit-feature-window.md).
+For the rationale behind choosing pure Python over pandas, see the
+Phase 3 notes in ARCHITECTURE.md.
 
-### Graph Builder — Faz 4
+### Graph Builder — Phase 4
 
-`NormalizedEvent` listesinden ve host envanterinden bir `AttackGraphSnapshot`
-üreten NetworkX tabanlı adaptör:
+A NetworkX-based adapter that turns a list of `NormalizedEvent` and a
+host inventory into an `AttackGraphSnapshot`:
 
 ```python
 from sentinelpath.graph_builder.infrastructure.networkx_adapter import NetworkXGraphBuilder
@@ -188,42 +175,38 @@ snapshot = builder.build(events=events, feature_vectors=feature_vectors)
 for edge in snapshot.edges:
     print(edge.source_node, "->", edge.target_node, edge.relation.value, f"(weight={edge.weight})")
 
-# Statik topoloji bilgisini (orn. firewall/subnet erişim kuralları) birleştirmek icin:
+# To merge in static topology information (e.g. firewall/subnet access rules):
 snapshot = builder.merge_static_topology(snapshot, topology_edges=[("host-a", "host-c")])
 ```
 
-Örnek çıktı:
+Example output:
 
 ```
 10.0.0.5 -> 10.0.0.10 authenticates_to (weight=1.0)
 10.0.0.5 -> 10.0.0.11 observed_lateral_movement (weight=3.0)
 ```
 
-**Mimari not:** `GraphBuilderPort.build()` imzasına Faz 4'te açık
-`events` parametresi eklendi — gerekçesi için bkz.
-[ADR 0005](docs/adr/0005-graph-builder-events-parameter.md). `DiGraph`
-yerine `MultiDiGraph` seçiminin gerekçesi (aynı host çifti arasında
-birden fazla ilişki tipinin aynı anda var olabilmesi) için
-`networkx_adapter.py` modül docstring'ine bakınız.
+**Design note:** `GraphBuilderPort.build()` gained an explicit `events`
+parameter in Phase 4 — see
+[ADR 0005](docs/adr/0005-graph-builder-events-parameter.md). For why
+`MultiDiGraph` was chosen over `DiGraph` (a single host pair can carry
+more than one relation type at once), see the module docstring in
+`networkx_adapter.py`.
 
-### Uçtan uca demo (Faz 1-4 birlikte)
+### End-to-end demo (Phases 1–4 together)
 
-`scripts/demo_end_to_end.py`, şu ana kadar inşa edilen dört fazı gerçek
-girdi/çıktılarla zincirler — bir lateral movement senaryosunu (RDP →
-SMB) ve aynı ortamdaki normal/gündüz trafiğini aynı grafta gösterir:
+`scripts/demo_end_to_end.py` chains the first four phases with real
+inputs/outputs — it shows a lateral-movement scenario (RDP → SMB)
+alongside normal daytime traffic on the same graph:
 
 ```bash
 PYTHONPATH=src python3 scripts/demo_end_to_end.py
 ```
 
-Bu, `.pcap`/Scapy adımı hariç (bu ortamda Scapy kurulu değil — bkz. ADR
-0003), pipeline'ın geri kalanının uçtan uca gerçekten çalıştığının
-kanıtıdır.
+### Baseline Behaviour — Phase 5
 
-### Baseline Behaviour — Faz 5
-
-Ham `NormalizedEvent` geçmişinden (birden fazla günü kapsayan geniş bir
-pencere) her host için "normal" davranış profili çıkarır:
+Derives a "normal behavior" profile per host from a raw
+`NormalizedEvent` history spanning multiple days:
 
 ```python
 from sentinelpath.baseline_behavior.infrastructure.in_memory_baseline import (
@@ -231,30 +214,29 @@ from sentinelpath.baseline_behavior.infrastructure.in_memory_baseline import (
 )
 
 baseline = InMemoryBaselineBehavior()
-baseline.recompute(events, window_start=..., window_end=...)  # periyodik/batch cagri
+baseline.recompute(events, window_start=..., window_end=...)  # periodic/batch call
 
-profile = baseline.get_profile("10.0.0.10")  # hizli, senkron okuma
+profile = baseline.get_profile("10.0.0.10")  # fast, synchronous read
 print(profile.confidence, profile.typical_active_hours, profile.typical_peer_nodes)
 ```
 
-**Önemli:** `confidence` alanı, istenen pencereye göre GERÇEKTEN kaç gün
-veri gözlemlendiğini yansıtır. Az veriyle "bu davranış anormal" iddia
-etmemek için Faz 6'daki Prediction Model bu değeri mutlaka hesaba
-katmalıdır — `scripts/demo_end_to_end.py`'nin çıktısı bunu somut olarak
-gösteriyor (tek günlük demo verisiyle confidence ≈ 0.07).
+**Important:** the `confidence` field reflects how many days of data
+were *actually* observed relative to the requested window. To avoid
+claiming "this behavior is anomalous" from too little data, the
+Prediction Model in Phase 6 factors this in.
 
-**Mimari not:** `BaselineBehaviorPort.recompute()` imzası Faz 5'te
-`AttackGraphSnapshot` yerine ham event + açık pencere alacak şekilde
-değiştirildi — gerekçesi için bkz.
-[ADR 0006](docs/adr/0006-baseline-events-and-window.md). Bu sınıf,
-projedeki ilk **stateful** adaptördür (Graph Builder'ın aksine) —
-gerekçesi için `in_memory_baseline.py` modül docstring'ine bakınız.
+**Design note:** `BaselineBehaviorPort.recompute()` was changed in
+Phase 5 to take a raw event list and an explicit window instead of an
+`AttackGraphSnapshot` — see
+[ADR 0006](docs/adr/0006-baseline-events-and-window.md). This class is
+the first **stateful** adapter in the project (unlike the stateless
+Graph Builder) — see the module docstring in `in_memory_baseline.py`.
 
-### Attack Path Prediction — Faz 6
+### Attack Path Prediction — Phase 6
 
-Bu, projenin asıl değer önerisi. İki ayrı motor birlikte çalışır (bkz.
-ADR 0002): **Attack Path Engine** (deterministik, sadece graf teorisi)
-ve **Prediction Model** (olasılıksal sıralama).
+This is the project's core value proposition. Two separate engines
+work together (see ADR 0002): the **Attack Path Engine** (deterministic,
+pure graph theory) and the **Prediction Model** (probabilistic ranking).
 
 ```python
 from sentinelpath.attack_path_engine.infrastructure.networkx_engine import (
@@ -270,34 +252,42 @@ candidate_paths = engine.find_candidate_paths(snapshot, start_node="10.0.0.50", 
 predictor = WeightedMarkovPredictionModel()
 result = predictor.predict(candidate_paths)
 
-for tp in result.predictions:  # azalan olasılıkla sıralı
+for tp in result.predictions:  # sorted by descending probability
     print(f"%{tp.probability*100:.1f}  {tp.technique_id}  {tp.technique_name}")
 ```
 
-**Model seçimi:** Isolation Forest, Random Forest, XGBoost, GNN, Temporal
-GNN, LSTM ve Transformer değerlendirildi ve MVP için reddedildi — hepsi
-etiketli eğitim verisi gerektiriyor, bu projede henüz hiç yok. Bunun
-yerine, gözlemlenen graf ağırlıklarından (zaten ampirik gözlem sıklığı)
-doğrudan olasılık üreten, eğitim gerektirmeyen bir **ağırlıklı Markov
-geçiş modeli** seçildi. Tam karşılaştırma tablosu ve gerekçe için bkz.
+**Model selection:** several supervised and representation-learning
+approaches — Random Forest, XGBoost, GNNs, Temporal GNNs, LSTMs, and
+Transformers — were considered and not selected for the MVP, mainly
+because the project currently lacks a sufficiently representative
+labeled training dataset and evaluation framework to fit or validate
+them responsibly. Isolation Forest was also considered but set aside
+for a different reason: it is an unsupervised anomaly-scoring method
+and does not directly model sequential attack-path transitions, which
+is the actual problem being solved here. Instead, a **weighted Markov
+transition model** was chosen: it produces probabilities directly from
+observed graph weights (which are already an empirical observation
+frequency) and requires no training data at all. See the full
+comparison table and rationale in
 [ADR 0009](docs/adr/0009-prediction-model-selection.md).
 
-**Mimari not:** Bu fazda implementasyon sırasında **iki gerçek veri kaybı**
-bulundu ve düzeltildi:
-- `GraphEdge`, spesifik MITRE teknik ID'lerini taşımıyordu (sadece kaba
-  ilişki kategorisini) — bkz. [ADR 0007](docs/adr/0007-graph-edge-technique-ids.md)
-- `CandidatePath`, Prediction Model'in olasılık hesaplayabilmesi için
-  gereken hop-bazlı yapılandırılmış veriyi taşımıyordu — bkz.
+**Design note:** implementing this phase surfaced **two real data-loss
+issues**, both fixed:
+- `GraphEdge` did not carry the specific MITRE technique ID, only the
+  coarse relation category — see
+  [ADR 0007](docs/adr/0007-graph-edge-technique-ids.md)
+- `CandidatePath` did not carry the hop-level structured data the
+  Prediction Model needs to compute probabilities — see
   [ADR 0008](docs/adr/0008-candidate-path-hop-data.md)
 
-Ayrıca `networkx`'in bu sürümünde `all_simple_paths()`'ın `target`
-parametresini artık zorunlu kıldığı canlı testler sırasında ortaya
-çıktı ve düzeltildi.
+A third issue — this version of `networkx` now requires an explicit
+`target` argument for `all_simple_paths()` — surfaced during live
+testing and was fixed as well.
 
-### Risk Scoring — Faz 7
+### Risk Scoring — Phase 7
 
-`PredictionResult`'i alıp her tahmin için `probability × asset_criticality
-× technique_severity` formülüyle bir risk skoru (0-100) üretir:
+Takes a `PredictionResult` and produces a risk score (0–100) per
+prediction using `probability × asset_criticality × technique_severity`:
 
 ```python
 from sentinelpath.risk_scoring.infrastructure.config_based_risk_scoring import (
@@ -305,34 +295,34 @@ from sentinelpath.risk_scoring.infrastructure.config_based_risk_scoring import (
 )
 
 risk_scorer = ConfigBasedRiskScoring(
-    asset_criticality_map={"10.0.0.20": 0.95, "10.0.0.10": 0.9},  # kurumun kendi varlık envanteri
+    asset_criticality_map={"10.0.0.20": 0.95, "10.0.0.10": 0.9},  # the organization's own asset inventory
 )
 risk_scores = risk_scorer.score(prediction, baseline_profiles=baseline_profiles)
 
-for rs in risk_scores:  # azalan skora göre sıralı
+for rs in risk_scores:  # sorted by descending score
     print(rs.target_node, rs.score, rs.baseline_confidence)
 ```
 
-**Mimari not:** `RiskScore`'a Faz 7'de `baseline_confidence` alanı
-eklendi — ama **ana formüle karıştırılmadı**, ayrı bir bağlam alanı
-olarak taşınıyor. Gerekçesi için bkz.
-[ADR 0010](docs/adr/0010-risk-score-baseline-confidence.md). Bu,
-Faz 6'nın "düşük güvenin skoru artırması mı azaltması mı gerektiği
-belirsiz" tespitine dürüst bir cevaptır: nihai yorumu insana bırakır.
+**Design note:** `RiskScore` gained a `baseline_confidence` field in
+Phase 7 — but it is **not folded into the main formula**, it is carried
+as separate context. See
+[ADR 0010](docs/adr/0010-risk-score-baseline-confidence.md). This is a
+direct answer to the "does low confidence raise or lower the score?"
+ambiguity found in Phase 6: it leaves the final interpretation to the
+human reader.
 
-`TECHNIQUE_SEVERITY` tablosundaki değerler resmi CVSS skorları
-**değildir** — CVSS'nin CVE'lere (zafiyetlere) atandığını, MITRE
-ATT&CK tekniklerine değil, unutmamak gerekir. Bunlar alan bilgisine
-dayanan makul varsayımlardır (Faz 6'daki `RELATION_PRIORITY` ile aynı
-ruhta).
+Values in the `TECHNIQUE_SEVERITY` table are **not** official CVSS
+scores — CVSS applies to CVEs (vulnerabilities), not MITRE ATT&CK
+techniques. They are reasonable, domain-informed assumptions, in the
+same spirit as the `RELATION_PRIORITY` table from Phase 6.
 
-### Recommendation Engine + Reporting — Faz 8 (MVP'nin son fazı)
+### Recommendation Engine + Reporting — Phase 8 (final MVP phase)
 
-**Not:** Recommendation Engine, orijinal 10 fazlık yol haritasında ayrı
-bir faz olarak listelenmemişti, ama Faz 1'in kendi pipeline diyagramında
-(Risk Scoring → Recommendation Engine → Reporting) vardı — Reporting'in
-`SentinelPathReport`'u kurabilmesi için `recommendations` alanının dolu
-olması gerektiğinden, bu ikisi birlikte tamamlandı.
+**Note:** the Recommendation Engine wasn't listed as a separate phase
+in the original ten-phase roadmap, but it appeared in Phase 1's own
+pipeline diagram (Risk Scoring → Recommendation Engine → Reporting) —
+since Reporting needs `recommendations` populated to build a
+`SentinelPathReport`, the two were completed together.
 
 ```python
 from sentinelpath.recommendation.infrastructure.rule_based_recommender import (
@@ -355,200 +345,217 @@ json_output = reporter.to_json(report)
 navigator_layer = reporter.to_attack_navigator_layer(report)
 ```
 
-Gerçek pipeline çıktısından üretilmiş örnek dosyalar `examples/`
-klasöründe bulunur:
-- `examples/sample_report.json` — genel amaçlı JSON rapor
-- `examples/sample_navigator_layer.json` — bu dosya doğrudan
-  [MITRE ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/)'a
-  "Open Existing Layer → Upload from local" ile yüklenip
-  görselleştirilebilir.
+Example files generated from a real pipeline run live in `examples/`:
+- `examples/sample_report.json` — general-purpose JSON report
+- `examples/sample_navigator_layer.json` — can be loaded directly into
+  [MITRE ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/)
+  via "Open Existing Layer → Upload from local"
 
-**Mimari not:** Navigator layer şeması, implementasyon öncesi resmi
-MITRE spesifikasyonuna (`layerformat.md`, v4.5) karşı doğrulandı.
-`versions.attack` alanı bilerek atlandı — hangi ATT&CK veri sürümüne
-karşılık geldiğini iddia etmek, veri seti güncellenince yanlış olabilir
-(alan opsiyonel). Risk skoru gradyanı MITRE'nin kendi örnek layer'inin
-tersi yönde tasarlandı (bizim bağlamımızda yüksek skor = kötü = kırmızı).
+**Design note:** the Navigator layer schema was validated against the
+official MITRE spec (`layerformat.md`, v4.5) before implementation. The
+`versions.attack` field is intentionally omitted — asserting a specific
+ATT&CK data version would go stale as soon as the dataset is updated
+(the field is optional). The risk-score gradient runs in the opposite
+direction from MITRE's own example layer, since in our context a high
+score is bad (red), not good.
 
-## MVP Tamamlandı
+### Dashboard — Phase 9
 
-Proje, 10 fazlık bir geliştirme yol haritasını takip etti; ilk 8 fazı
-(MVP kapsamı) tamamlanmıştır. Uçtan uca çalışan pipeline
-`scripts/demo_end_to_end.py` ile gösterilmektedir. Faz 9 (Dashboard) ve
-Faz 10 (Deployment), README'nin "Gelecek Planı" bölümünde ele
-alınmaktadır.
-
-> Kod tabanı ve testler tamamlanmıştır (CI: passing, 111 test). Sistem 
-> gerçek network trafiğiyle (Wireshark capture) uçtan uca doğrulanmıştır, 
-> ancak büyük ölçekli, gerçek bir üretim ortamında henüz kanıtlanmamıştır. 
-> Bkz. "Bilinen Sınırlamalar" ve "Gelecek Planı" bölümleri.
-
-### Dashboard — Faz 9
-
-Faz 2-8'de yazılan tüm bileşenleri zincirleyen bir **PipelineOrchestrator**
-(saf Python, hiçbir web framework'üne bağımlı değil), bunu HTTP üzerinden
-sunan bir **FastAPI uygulaması**, ve bunu görselleştiren **statik bir
-HTML/vanilla JS dashboard** eklendi.
+A **PipelineOrchestrator** (pure Python, no web-framework dependency)
+chains every component from Phases 2–8; a **FastAPI application**
+exposes it over HTTP; a **static HTML/vanilla-JS dashboard** visualizes
+the result.
 
 ```bash
 pip install -e ".[api]"
 uvicorn sentinelpath.api.main:app --reload
 ```
 
-Sonra tarayıcıda `http://localhost:8000/dashboard/` açılıp "Demo
-senaryosunu çalıştır" butonuna basılabilir — risk skoru tablosu,
-öneriler ve `vis-network` ile çizilmiş bir saldırı grafiği görüntülenir.
-API dokümantasyonu otomatik olarak `http://localhost:8000/docs`
-adresinde oluşturulur (FastAPI'nin OpenAPI desteği sayesinde).
+Then open `http://localhost:8000/dashboard/` in a browser and click
+"Run demo scenario" — a risk-score table, recommendations, and an
+attack graph rendered with `vis-network` will appear. API documentation
+is auto-generated at `http://localhost:8000/docs` via FastAPI's OpenAPI
+support.
 
-**Mimari not:** Bu fazda da (Faz 2'deki Scapy kısıtıyla aynı ruhta)
-dürüst bir sınır var — bu sandbox'ta `pydantic`/`fastapi` kurulu değil,
-internet kapalı. Bu yüzden mimari, ADR 0003'ün aynısını bir web
-framework'üne uyguladı (bkz.
-[ADR 0011](docs/adr/0011-dashboard-tech-stack.md)):
-`PipelineOrchestrator` tamamen framework-bağımsız yazıldı ve **bu
-sandbox'ta gerçekten test edildi** (5/5 test); FastAPI katmanı (`api/main.py`,
-`api/schemas.py`) sadece ince bir HTTP dönüşüm katmanı ve sadece
-sözdizimi doğrulanabildi. Dashboard'ın JavaScript'i de aynı prensiple
-ikiye bölündü: DOM'a bağımlı olmayan saf fonksiyonlar (`buildGraphData`,
-`riskColor`, vb.) Node.js altında **gerçekten test edildi** (20/20 test,
-bkz. `tests/dashboard/test_app_pure_functions.js`); DOM/fetch kodu
-sadece tarayıcıda çalışır ve bu ortamda görsel olarak doğrulanamadı.
+**Design note:** `PipelineOrchestrator` is deliberately
+framework-independent, following the same split as
+[ADR 0003](docs/adr/0003-pure-translation-vs-framework-io-split.md)
+applied to a web framework — see
+[ADR 0011](docs/adr/0011-dashboard-tech-stack.md). The dashboard's
+JavaScript is split the same way: DOM-independent pure functions
+(`buildGraphData`, `riskColor`, etc.) are unit-tested under Node.js
+(20/20 tests, see `tests/dashboard/test_app_pure_functions.js`).
 
-### Deployment — Faz 10 (yol haritasının son fazı)
+### Deployment — Phase 10
 
 ```bash
-# Docker Compose ile:
+# With Docker Compose:
 docker compose up --build
 # http://localhost:8000/dashboard/
 
-# Veya doğrudan Docker ile:
+# Or directly with Docker:
 docker build -t sentinelpath-ai .
 docker run -p 8000:8000 sentinelpath-ai
 ```
 
-CI/CD, GitHub Actions ile sağlanır (`.github/workflows/ci.yml`):
-Python 3.11/3.12 matrisi, `ruff` lint, `mypy` tip kontrolü, tam `pytest`
-paketi (tüm opsiyonel bağımlılıklarla — `api`, `network`, `ml`), Node.js
-dashboard testleri, ve bir Docker build doğrulaması.
+CI/CD runs on GitHub Actions (`.github/workflows/ci.yml`): a Python
+3.11/3.12 matrix, `ruff` lint, `mypy` type checking, the full `pytest`
+suite with the CI-supported optional dependency groups (`api`,
+`network`, `ml`), Node.js dashboard tests, and a Docker build check.
+The `gnn` group (`torch`) is intentionally excluded from CI — it's a
+heavyweight dependency and no GNN implementation exists yet (see
+ADR 0009); including it would only slow CI down for no coverage gain.
 
-**Mimari not — projenin dürüstlük teması burada kapanıyor:** Bu
-sandbox'ta internet erişimi kapalı olduğu için `scapy`, `pydantic`,
-`fastapi` gibi bağımlılıklar hiç kurulamadı ve buna bağlı testler
-(`test_pcap_adapter.py`, `test_weighted_markov_model.py`'nin `pytest`
-kısmı, API katmanı) sadece sözdizimi seviyesinde doğrulanabildi. GitHub
-Actions runner'larının **gerçek internet erişimi** vardır — CI, bu
-projenin geliştirilmesi boyunca "bu ortamda test edemedim" diye
-işaretlenen **her şeyi** nihayet gerçekten çalıştıracaktır. Detaylar
-için bkz. [ADR 0012](docs/adr/0012-deployment-tech-stack.md).
+The Docker image uses a multi-stage build — build tools (gcc, etc.)
+stay in the `builder` stage only; the final runtime image does not
+include them (a smaller attack surface, which is thematically fitting
+for a security tool). The container runs as a non-root user and defines
+a `HEALTHCHECK` against `GET /health`.
 
-Docker imajı çok-aşamalı (multi-stage) build kullanır — derleme araçları
-(gcc vb.) yalnızca `builder` aşamasında kalır, final `runtime` imajı
-bunları içermez (saldırı yüzeyini küçültmek, bir güvenlik aracı için
-tematik olarak da tutarlı). Konteyner root olmayan bir kullanıcıyla
-çalışır ve `GET /health` üzerinden bir `HEALTHCHECK` tanımlıdır.
+For the full rationale behind the deployment stack choices, see
+[ADR 0012](docs/adr/0012-deployment-tech-stack.md).
 
-**Dürüst sınır:** Bu sandbox'ta Docker daemon kurulu değil —
-`docker build`/`docker compose up` bu ortamda çalıştırılarak
-doğrulanamadı. Dockerfile ve docker-compose.yml sözdizimi/mantık olarak
-gözden geçirildi (docker-compose.yml gerçek bir YAML parser ile
-doğrulandı), ama gerçek bir build denemesi CI'da (veya kendi
-ortamınızda) yapılmalıdır.
+## Project Status
 
-## Proje Yapisi
+All ten planned development phases are complete. The first eight
+phases constitute the MVP; Phases 9 (Dashboard) and 10 (Deployment) are
+documented in their own sections above. This reflects a completed
+*roadmap*, not production maturity — the project remains a
+research/prototype system and has not yet been validated at enterprise
+production scale.
+
+> The current test suite is passing in CI (111 tests). The system has
+> been validated end-to-end against real network traffic (Wireshark
+> captures), but not yet in a large-scale production environment. See
+> "Known Limitations" and "Roadmap" below.
+
+| Phase | Content | Status |
+|---|---|---|
+| 1 | Repository, Architecture, Documentation | ✅ Done |
+| 2 | Network Parser (Collector — pcap → NormalizedEvent) | ✅ Done |
+| 3 | Feature Extraction (NormalizedEvent → HostFeatureVector) | ✅ Done |
+| 4 | Graph Builder (NetworkX MultiDiGraph adapter) | ✅ Done |
+| 5 | Baseline Behaviour (event history → BaselineProfile) | ✅ Done |
+| 6 | Attack Path Prediction (Attack Path Engine + Weighted Markov Model) | ✅ Done |
+| 7 | Risk Scoring (probability × criticality × severity + baseline context) | ✅ Done |
+| 8 | Reporting (Recommendation Engine + JSON/ATT&CK Navigator export) | ✅ Done (MVP) |
+| 9 | Dashboard (PipelineOrchestrator + FastAPI + static HTML/JS) | ✅ Done |
+| 10 | Deployment (Docker + docker-compose + GitHub Actions CI) | ✅ Done |
+
+Each phase was completed with a working, independently runnable
+deliverable at the end; README.md and ARCHITECTURE.md are updated
+before moving to the next phase.
+
+## Example Output
+
+Real output from `scripts/demo_end_to_end.py` (an RDP + SMB
+lateral-movement scenario):
+
+```
+Model: weighted_markov_v1
+Predictions (for 10.0.0.50, sorted by decreasing probability):
+  75.0%  T1021.002    Remote Services: SMB/Windows Admin Shares
+  25.0%  T1021.001    Remote Services: Remote Desktop Protocol
+```
+
+This was derived with no training data at all — purely from observed
+graph weights and MITRE ATT&CK association (see
+[ADR 0009](docs/adr/0009-prediction-model-selection.md)).
+
+### Real Lab Validation
+
+The system was also tested end-to-end against real network traffic in
+a self-built VirtualBox lab (host → Windows 10 → Windows Server 2022,
+an SMB + RDP chain). The pipeline correctly predicted, based on the
+volume of observed evidence, that the attacker had progressed as far
+as the Windows Server (T1021.001, 100% relative probability), while
+honestly flagging the low baseline confidence behind that prediction.
+
+This real-data test surfaced two genuine bugs that no synthetic demo
+would have caught:
+- **Packet-vs-connection counting** — treating every TCP packet as a
+  separate "connection" heavily over-counted long-lived sessions (e.g.
+  RDP) relative to short ones (e.g. an SMB browse) — see
+  [ADR 0013](docs/adr/0013-packet-vs-connection-counting.md)
+- **Pre-cached connection capture** — a capture started *after* a
+  connection was already established missed the initial handshake
+  entirely, producing zero events for that hop
+
+Both were found, fixed, and documented as ADRs — exactly the kind of
+issue synthetic test data structurally cannot reveal.
+
+## Known Limitations
+
+Documented here in the same spirit as the ADRs — what this system does
+*not* yet do, rather than letting the "10/10 phases done" framing above
+overstate it:
+
+- **Not validated at production scale.** All real-data testing so far
+  is a small, self-built lab (2–3 hosts). No large enterprise network
+  has been used.
+- **UDP connection counting is unresolved.** The fix in ADR 0013 only
+  applies to TCP (SYN-based); UDP has no connection concept, so
+  UDP-heavy protocols (e.g. RDP's graphics channel) can still inflate
+  edge weights. See ADR 0013 for the accepted workarounds and future
+  direction.
+- **The Prediction Model is a frequency-based heuristic, not a trained
+  model.** See ADR 0009 for why, and the conditions under which it
+  should be replaced with a supervised model.
+- **No persistence layer.** `InMemoryBaselineBehavior` and all pipeline
+  state live in memory only; nothing survives a process restart yet.
+- **The MITRE mitigation mapping is small.** `RuleBasedRecommendationEngine`
+  currently only covers the T1021.* sub-techniques and T1078 — techniques
+  outside this set fall back to a generic "consult MITRE ATT&CK" message.
+- **No live/streaming capture.** The Collector reads `.pcap` files;
+  real-time packet sniffing was deliberately deferred (see ADR 0003).
+
+## Project Structure
 
 ```
 sentinelpath-ai/
-├── ARCHITECTURE.md          ← mimari kararlar ve gerekceleri
+├── ARCHITECTURE.md          ← architecture decisions and rationale
 ├── docs/adr/                ← Architecture Decision Records
-├── examples/                ← gercek pipeline ciktisindan uretilmis ornek raporlar
-├── Dockerfile, docker-compose.yml, .dockerignore  ← Faz 10: konteynerlestirme
-├── .github/workflows/ci.yml  ← Faz 10: GitHub Actions CI
+├── examples/                ← sample reports generated from a real pipeline run
+├── Dockerfile, docker-compose.yml, .dockerignore
+├── .github/workflows/ci.yml
 ├── src/sentinelpath/
-│   ├── core/models.py       ← paylasilan domain veri sozlesmeleri
-│   ├── config/settings.py   ← tip-guvenli konfigurasyon
-│   ├── logging_setup.py     ← yapilandirilmis (JSON) loglama
-│   ├── orchestration/        ← Faz 9: PipelineOrchestrator (framework-bagimsiz)
-│   ├── api/                  ← Faz 9: FastAPI katmani (ince, orchestrator'i sarar)
-│   ├── static/dashboard/      ← Faz 9: statik HTML/CSS/JS dashboard (PAKET ICINDE, bkz. ADR 0012)
+│   ├── core/models.py       ← shared domain data contracts
+│   ├── config/settings.py   ← type-safe configuration
+│   ├── logging_setup.py     ← structured (JSON) logging
+│   ├── orchestration/        ← PipelineOrchestrator (framework-independent)
+│   ├── api/                  ← FastAPI layer (thin, wraps the orchestrator)
+│   ├── static/dashboard/      ← static HTML/CSS/JS dashboard (packaged with the module)
 │   └── <module>/
-│       ├── domain/ports.py         ← soyut arayuz (Protocol)
-│       ├── application/            ← use-case'ler
-│       └── infrastructure/         ← somut implementasyonlar
+│       ├── domain/ports.py         ← abstract interface (Protocol)
+│       ├── application/            ← use cases
+│       └── infrastructure/         ← concrete implementations
 └── tests/
-    └── dashboard/            ← Faz 9: dashboard JS'in saf fonksiyonlari icin Node.js testleri
+    └── dashboard/            ← Node.js tests for the dashboard JS pure functions
 ```
 
-Her pipeline asamasi (`collector`, `feature_extraction`, `graph_builder`,
+Every pipeline stage (`collector`, `feature_extraction`, `graph_builder`,
 `baseline_behavior`, `attack_path_engine`, `prediction`, `risk_scoring`,
-`recommendation`, `reporting`) ayni `domain/application/infrastructure`
-desenini takip eder. Gerekce icin bkz. ARCHITECTURE.md, bolum 4.
+`recommendation`, `reporting`) follows the same
+`domain/application/infrastructure` pattern. See ARCHITECTURE.md,
+section 4, for the rationale.
 
-## Faz Haritasi
+## Roadmap
 
-| Faz | Icerik | Durum |
-|---|---|---|
-| 1 | Repository, Architecture, Documentation | ✅ Tamamlandi |
-| 2 | Network Parser (Collector implementasyonu — pcap → NormalizedEvent) | ✅ Tamamlandi |
-| 3 | Feature Extraction (NormalizedEvent → HostFeatureVector) | ✅ Tamamlandi |
-| 4 | Graph Builder (NetworkX MultiDiGraph adapter) | ✅ Tamamlandi |
-| 5 | Baseline Behaviour (NormalizedEvent gecmisi → BaselineProfile) | ✅ Tamamlandi |
-| 6 | Attack Path Prediction (Attack Path Engine + Weighted Markov Model) | ✅ Tamamlandi |
-| 7 | Risk Scoring (probability × criticality × severity + baseline context) | ✅ Tamamlandi |
-| 8 | Reporting (Recommendation Engine + JSON/ATT&CK Navigator export) | ✅ Tamamlandi (MVP) |
-| 9 | Dashboard (PipelineOrchestrator + FastAPI + statik HTML/JS) | ✅ Tamamlandi |
-| 10 | Deployment (Docker + docker-compose + GitHub Actions CI) | ✅ Tamamlandi |
+- Keep the ATT&CK Navigator layer export aligned as MITRE's schema evolves
+  (the export already targets v4.5 — see the Reporting section above)
+- Sigma rule suggestions (a proactive detection rule for a predicted technique)
+- Native Sysmon / Zeek data format support
+- Migration from the static Markov baseline to a Graph Neural Network /
+  Temporal Graph Network, with a proper comparative evaluation (see Phase 6)
+- A community-contributed "attack path dataset" format
 
-**Proje, 10 fazlık geliştirme yol haritasının tamamını tamamladı.**
+## Contributing
 
-> Kod tabanı ve testler tamamlanmıştır (CI: passing, 111 test). Sistem
-> gerçek network trafiğiyle (Wireshark capture) uçtan uca doğrulanmıştır,
-> ancak büyük ölçekli, gerçek bir üretim ortamında henüz kanıtlanmamıştır.
-> Bkz. "Gelecek Planı" bölümü.
+This project is designed as an open-source research platform. Before
+asking about a design decision, check ARCHITECTURE.md and
+`docs/adr/` first — the answer to many "why was it done this way?"
+questions is already written down there with its reasoning.
 
-Her faz sonunda bagimsiz calisabilen bir urun ortaya cikacak sekilde
-ilerlenmektedir; bir sonraki faza gecmeden once bu README ve
-ARCHITECTURE.md guncellenir.
+## License
 
-## Örnek Çıktı
-
-`scripts/demo_end_to_end.py`'nin gerçek çalıştırılmasından alınmış çıktı
-(RDP + SMB tabanlı bir lateral movement senaryosu):
-
-Model: weighted_markov_v1
-Tahminler (10.0.0.50 icin, azalan olasilikla):
-%75.0 T1021.002 Remote Services: SMB/Windows Admin Shares
-%25.0 T1021.001 Remote Services: Remote Desktop Protocol
-
-Bu, hiçbir eğitim verisi olmadan, sadece gözlemlenen graf ağırlıklarından
-ve MITRE ATT&CK ilişkilendirmesinden türetildi (bkz. ADR 0009).
-
-### Gerçek Lab Doğrulaması
-
-Sistem, kendi VirtualBox lab ortamında (host → Windows 10 → Windows 
-Server 2022, SMB + RDP zinciri) gerçek network trafiğiyle uçtan uca 
-test edildi. Pipeline, gözlemlenen kanıt hacmine göre saldırganın 
-Windows Server'a kadar ilerlediğini doğru şekilde öngördü (T1021.001, 
-%100 göreli olasılık, düşük baseline güveniyle birlikte dürüstçe 
-işaretlenmiş).
-
-## Gelecek Plani
-
-- MITRE ATT&CK Navigator ile tam uyumlu layer export'u
-- Sigma kural onerisi (tahmin edilen teknige karsi proaktif tespit kurali)
-- Sysmon / Zeek gercek veri format destegi
-- Statik model baseline'dan Graph Neural Network / Temporal Graph Network'e
-  gecis (karsilastirmali degerlendirme ile, bkz. Faz 6)
-- Topluluk katkili "attack path dataset" formati
-
-## Katkida Bulunma
-
-Bu proje acik kaynak bir arastirma platformu olarak tasarlanmistir.
-Mimari kararlar hakkinda soru sormadan once ARCHITECTURE.md ve
-`docs/adr/` klasorune bakmaniz onerilir — birçok "neden boyle?" sorusunun
-cevabi zaten orada gerekceli olarak yazilidir.
-
-## Lisans
-
-AGPL-3.0 — bkz. [LICENSE](LICENSE).
-
+AGPL-3.0 — see [LICENSE](LICENSE).
