@@ -50,3 +50,9 @@ uygulanmis halidir -- ayni prensip, farkli bir framework sinirinda.
 - **Olumsuz:** API katmaninin GERCEK HTTP davranisi (routing, hata
   kodlari, Pydantic dogrulama hatalari) kullanicinin kendi ortaminda
   `pip install -e ".[api]"` sonrasi test edilmelidir.
+
+## Test
+Not (güncelleme): Dashboard, 08.09.2026'te gercek bir tarayicida ucdan uca
+test edildi ve calisti -- risk skoru tablosu, oneriler ve vis-network
+grafigi dogru sekilde render edildi. Yukaridaki "dogrulanamadi" notu
+artik gecerli degil, tarihsel kayit olarak birakiliyor.
