@@ -40,3 +40,6 @@ htmlcov/
 # --- PCAP ---
 *.pcap
 *.pcapng
+
+# --- LanlData ---
+scripts/lanl_data/
