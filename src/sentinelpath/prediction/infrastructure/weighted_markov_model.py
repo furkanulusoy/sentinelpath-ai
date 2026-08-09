@@ -56,6 +56,11 @@ DEFAULT_RELATION_PRIORS: dict[RelationType, float] = {
     RelationType.AUTHENTICATES_TO: 2.0,
     RelationType.TRUSTS: 1.5,
     RelationType.NETWORK_REACHABLE: 1.0,
+    # Faz B / ADR 0015: Discovery taktigi (TA0007), Lateral Movement'tan
+    # ONCE ve ondan daha ZAYIF bir kanittir -- mevcut olcegin (1.0-3.0)
+    # bir basamak ALTINA yerlestirilir. Bu deger ground truth'a (redteam.txt)
+    # gore AYARLANMAMISTIR -- tablonun kendi ic mantigina dayanir.
+    RelationType.OBSERVED_SCANNING: 0.5,
 }
 
 # Bilinen MITRE ATT&CK teknik ID -> insan-okunur isim eslemesi. MVP

@@ -120,6 +120,12 @@ class RelationType(StrEnum):
     AUTHENTICATES_TO = "authenticates_to"  # kullanici -> host
     TRUSTS = "trusts"  # host -> host (domain trust vb.)
     OBSERVED_LATERAL_MOVEMENT = "observed_lateral_movement"
+    # Faz B (LANL degerlendirmesi) icin eklendi -- bkz. ADR 0015.
+    # Discovery taktigi (TA0007), Lateral Movement'tan ONCE ve ondan daha
+    # ZAYIF bir kanittir -- bu yuzden RELATION_PRIORS tablosunda mevcut
+    # olceğin (1.0-3.0) BIR BASAMAK ALTINA yerlestirilir, ayri bir
+    # kategori olarak degil.
+    OBSERVED_SCANNING = "observed_scanning"
 
 
 @dataclass(frozen=True)
@@ -172,6 +178,12 @@ class BaselineProfile:
     typical_active_hours: tuple[int, ...]  # orn. (8,9,...,18)
     typical_peer_nodes: tuple[str, ...]
     confidence: float  # 0.0-1.0, baseline'in kac gunluk veriye dayandigina bagli
+    # Faz B (LANL degerlendirmesi) icin eklendi -- bkz. ADR 0015.
+    # Tukey IQR yontemiyle turetilen, bu host icin "normal" sayilan
+    # bir zaman penceresindeki (varsayilan 5 dk) MAKSIMUM farkli hedef
+    # sayisi. Yeterli veri yoksa None -- typical_peer_nodes gibi, uydurma
+    # bir sayi uretilmez.
+    typical_max_targets_per_window: float | None = None
 
 
 # ---------------------------------------------------------------------------

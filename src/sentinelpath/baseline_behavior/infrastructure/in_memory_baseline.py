@@ -17,8 +17,9 @@ degistirilebilir, port sozlesmesine dokunmadan.
 
 from __future__ import annotations
 
+import statistics
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sentinelpath.core.models import BaselineProfile, NormalizedEvent
 
@@ -33,7 +34,12 @@ class InMemoryBaselineBehavior:
         self,
         hour_frequency_threshold: float | None = None,
         peer_day_fraction_threshold: float | None = None,
+        scan_window_minutes: int = 5,
     ) -> None:
+        # scan_window_minutes: T1046 tespiti icin kayan pencere boyutu
+        # (bkz. ADR 0015). Settings'e tasinmadi -- YAGNI, tek bir sabit
+        # deger MVP icin yeterli, gerektiginde config'e tasinabilir.
+        self._scan_window_minutes = scan_window_minutes
         if hour_frequency_threshold is None or peer_day_fraction_threshold is None:
             # Lazy import: RuleBasedFeatureExtractor'daki (Faz 3) ayni
             # prensip -- acik parametrelerle kullanildiginda
@@ -117,4 +123,54 @@ class InMemoryBaselineBehavior:
             typical_active_hours=typical_hours,
             typical_peer_nodes=typical_peers,
             confidence=confidence,
+            typical_max_targets_per_window=self._typical_max_targets_per_window(
+                host_events
+            ),
         )
+
+    def _typical_max_targets_per_window(
+            self, host_events: list[NormalizedEvent]
+    ) -> float | None:
+        """Tukey IQR yontemiyle, bu host icin 'normal' sayilan bir zaman
+        penceresindeki (self._scan_window_minutes) MAKSIMUM farkli hedef
+        sayisini turetir. Faz B / ADR 0015'te T1046 (Network Service
+        Discovery) tespiti icin eklendi.
+
+        Kasitli olarak REDTEAM.TXT'e (veya baska bir ground truth'a)
+        HICBIR sekilde bakmaz -- esik, sadece bu host'un kendi gozlemlenen
+        dagilimindan turetilir (bkz. ADR 0015, "sizinti onleme" bolumu).
+        """
+        targeted_events = sorted(
+            (e for e in host_events if e.target_host is not None),
+            key=lambda e: e.timestamp,
+        )
+        if len(targeted_events) < 4:
+            # Anlamli bir IQR icin yeterli veri yok.
+            return None
+
+        window = timedelta(minutes=self._scan_window_minutes)
+        fanout_per_window: list[int] = []
+        left = 0
+        seen_targets: Counter[str] = Counter()
+
+        for event in targeted_events:
+            seen_targets[event.target_host] += 1
+            while targeted_events[left].timestamp <= event.timestamp - window:
+                leaving = targeted_events[left]
+                seen_targets[leaving.target_host] -= 1
+                if seen_targets[leaving.target_host] == 0:
+                    del seen_targets[leaving.target_host]
+                left += 1
+            fanout_per_window.append(len(seen_targets))
+
+        if len(set(fanout_per_window)) < 2:
+            # Dagilimda hic varyasyon yok -- IQR anlamsiz olur.
+            return None
+
+        try:
+            q1, _, q3 = statistics.quantiles(fanout_per_window, n=4)
+        except statistics.StatisticsError:
+            return None
+
+        iqr = q3 - q1
+        return q3 + 1.5 * iqr

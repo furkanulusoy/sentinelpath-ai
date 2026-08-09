@@ -72,6 +72,15 @@ TECHNIQUE_MITIGATIONS: dict[str, tuple[str, str, str]] = {
         "icin tespiti EN ZOR tekniklerden biridir -- MFA ve hesap "
         "hijyeni en etkili savunmadir.",
     ),
+    "T1046": (
+        "M1030",
+        "Ag segmentasyonuyla, bir host'un erisebildigi hedef sayisini "
+        "sinirlayin; gereksiz servis/port erisimini kapatin.",
+        "T1046 (Network Service Discovery), saldirganin sonraki lateral "
+        "movement hedefini secmesini saglar. MITRE'nin resmi onerisi de "
+        "M1030 (Network Segmentation) -- ayni mitigasyon, T1021.002 icin "
+        "zaten kullanilan mitigasyonla tutarli.",
+    ),
 }
 
 DEFAULT_ACTION = (

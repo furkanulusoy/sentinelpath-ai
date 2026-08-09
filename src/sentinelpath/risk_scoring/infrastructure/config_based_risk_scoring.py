@@ -37,6 +37,11 @@ TECHNIQUE_SEVERITY: dict[str, float] = {
     "T1021.005": 0.60,  # VNC
     "T1021.006": 0.70,  # WinRM
     "T1078": 0.80,  # Valid Accounts -- tespiti en zor, en genis erisim
+    # Faz B / ADR 0015: T1046 bir KESIF (precursor) teknigidir, dogrudan
+    # bir varligi ele gecirmez -- bu yuzden T1021 ailesinden daha dusuk.
+    # Ayni "Discovery = daha erken, daha zayif" mantigi RELATION_PRIORS'ta
+    # da (weighted_markov_model.py) tutarli sekilde uygulanmistir.
+    "T1046": 0.40,       # Network Service Discovery
 }
 
 
