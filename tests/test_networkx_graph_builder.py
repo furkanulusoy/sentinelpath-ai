@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 
 from sentinelpath.core.models import (
     EventSource,
+    GraphEdge,
     HostFeatureVector,
     NormalizedEvent,
     RelationType,
@@ -243,3 +244,39 @@ def test_merge_static_topology_preserves_existing_behavioral_edges() -> None:
     relations = {e.relation for e in merged.edges}
     assert RelationType.AUTHENTICATES_TO in relations  # eski davranissal edge kaybolmamis
     assert len(merged.edges) == 2  # eski + yeni statik edge
+
+def test_merge_detected_edges_preserves_relation_weight_and_technique() -> None:
+    builder = NetworkXGraphBuilder()
+    snapshot = builder.build(events=[], feature_vectors=[])
+
+    detected = [
+        GraphEdge(
+            source_node="attacker",
+            target_node="host1",
+            relation=RelationType.OBSERVED_SCANNING,
+            weight=2.0,
+            mitre_technique_ids=("T1046",),
+        )
+    ]
+    merged = builder.merge_detected_edges(snapshot, detected)
+
+    assert len(merged.edges) == 1
+    edge = merged.edges[0]
+    assert edge.relation == RelationType.OBSERVED_SCANNING
+    assert edge.weight == 2.0
+    assert edge.mitre_technique_ids == ("T1046",)
+
+
+def test_merge_detected_edges_is_idempotent() -> None:
+    builder = NetworkXGraphBuilder()
+    snapshot = builder.build(events=[], feature_vectors=[])
+    detected = [
+        GraphEdge(
+            source_node="a", target_node="b",
+            relation=RelationType.OBSERVED_SCANNING, weight=3.0,
+            mitre_technique_ids=("T1046",),
+        )
+    ]
+    once = builder.merge_detected_edges(snapshot, detected)
+    twice = builder.merge_detected_edges(once, detected)
+    assert len(twice.edges) == len(once.edges) == 1

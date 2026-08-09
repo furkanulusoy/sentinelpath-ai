@@ -176,3 +176,34 @@ class NetworkXGraphBuilder:
                 )
 
         return graph_to_snapshot(graph)
+
+    def merge_detected_edges(
+        self, snapshot: AttackGraphSnapshot, detected_edges: list[GraphEdge]
+    ) -> AttackGraphSnapshot:
+        """Faz B / ADR 0015: dis bir dedektorun (orn.
+        discovery_detection.scan_detector) urettigi ZENGIN kenarlari
+        (relation, weight, mitre_technique_ids dahil) mevcut bir grafa
+        birlestirir.
+
+        merge_static_topology()'den FARKI: o fonksiyon basit (source,
+        target) ciftlerini HER ZAMAN NETWORK_REACHABLE/weight=1.0 olarak
+        ekler. Bu fonksiyon ise cagiran tarafin ONCEDEN hesapladigi TAM
+        GraphEdge nesnelerini OLDUGU GIBI ekler.
+        """
+        graph = snapshot_to_graph(snapshot)
+
+        for edge in detected_edges:
+            graph.add_node(edge.source_node)
+            graph.add_node(edge.target_node)
+            key = edge.relation.value
+            if not graph.has_edge(edge.source_node, edge.target_node, key=key):
+                graph.add_edge(
+                    edge.source_node,
+                    edge.target_node,
+                    key=key,
+                    relation=edge.relation,
+                    weight=edge.weight,
+                    mitre_technique_ids=edge.mitre_technique_ids,
+                )
+
+        return graph_to_snapshot(graph)
