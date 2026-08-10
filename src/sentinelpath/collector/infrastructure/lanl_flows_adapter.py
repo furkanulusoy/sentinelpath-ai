@@ -16,6 +16,7 @@ port-tabanli TEK bir mantiktan geliyor, pcap ve LANL flows icin ayri
 ayri tanimlanmaz).
 """
 
+
 from __future__ import annotations
 
 import gzip
@@ -24,6 +25,9 @@ from pathlib import Path
 
 from sentinelpath.collector.infrastructure.packet_translation import PORT_TO_TECHNIQUE
 from sentinelpath.core.models import EventSource, NormalizedEvent
+from sentinelpath.logging_setup import get_logger
+
+logger = get_logger(__name__)
 
 # LANL veri seti zaman damgalari, veri toplama basindan itibaren gecen
 # SANIYE SAYISIdir (gercek takvim tarihi degil). TUM LANL-tabanli
@@ -45,16 +49,55 @@ class LANLFlowsCollector:
     def source_name(self) -> str:
         return f"lanl_flows:{self._flows_path}"
 
-    def collect(self, since: datetime | None = None) -> list[NormalizedEvent]:
+    def collect(
+        self,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        progress_every_lines: int = 0,
+    ) -> list[NormalizedEvent]:
+        """`until` verilirse, LANL verisinin ZAMANA GORE SIRALI oldugu
+        varsayimiyla, o zamani gecen ilk satirda okuma DURDURULUR.
+
+        `progress_every_lines` > 0 verilirse, her N satirda bir
+        (yaklasik) ilerleme yuzdesi loglanir -- sikistirilmis dosyanin
+        ne kadarinin okundugu, gercek bayt konumuna gore hesaplanir.
+        Buyuk dosyalarda (orn. LANL auth.txt, ~7.4GB) tek seferlik bir
+        ilerleme gostergesi ihtiyacindan dogdu, varsayilan 0 = kapali.
+        """
+        total_size = self._flows_path.stat().st_size
         events: list[NormalizedEvent] = []
-        with gzip.open(self._flows_path, "rt") as f:
-            for line_num, line in enumerate(f):
-                parsed = self._parse_line(line, line_num)
-                if parsed is None:
-                    continue
-                if since is not None and parsed.timestamp < since:
-                    continue
-                events.append(parsed)
+        line_num = 0
+
+        raw_file = open(self._flows_path, "rb")
+        try:
+            with gzip.open(raw_file, "rt") as f:
+                for line_num, line in enumerate(f, start=1):
+                    if progress_every_lines and line_num % progress_every_lines == 0:
+                        percent = raw_file.tell() / total_size * 100
+                        logger.info(
+                            "lanl_flows_progress",
+                            lines_read=line_num,
+                            events_collected=len(events),
+                            compressed_bytes_percent=round(percent, 1),
+                        )
+
+                    parsed = self._parse_line(line, line_num)
+                    if parsed is None:
+                        continue
+                    if until is not None and parsed.timestamp > until:
+                        break
+                    if since is not None and parsed.timestamp < since:
+                        continue
+                    events.append(parsed)
+        finally:
+            raw_file.close()
+
+        logger.info(
+            "lanl_flows_collected",
+            source=self.source_name(),
+            lines_read=line_num,
+            event_count=len(events),
+        )
         return events
 
     def _parse_line(self, line: str, line_num: int) -> NormalizedEvent | None:

@@ -540,15 +540,16 @@ desenini takip eder. Gerekçe için bkz. ARCHITECTURE.md, bölüm 4.
 
 ## Gelecek Planı
 
-- MITRE'nin şeması geliştikçe ATT&CK Navigator layer export'unu güncel
-  tutmak (export şu an zaten v4.5'i hedefliyor — bkz. yukarıdaki
-  Reporting bölümü)
+- Adaptif baseline kalibrasyonu: `BaselineBehaviorPort`'un, sabit bir
+  kalibrasyon penceresi yerine, yeterli geçmiş veri gözlemlendiğinde
+  otomatik olarak "öğrenme" durumundan "aktif tespit" durumuna
+  geçmesi (bkz. ADR 0015 tartışması)
+- MITRE ATT&CK Navigator ile tam uyumlu layer export'u
 - Sigma kural önerisi (tahmin edilen tekniğe karşı proaktif tespit kuralı)
 - Sysmon / Zeek gerçek veri format desteği
 - Statik model baseline'dan Graph Neural Network / Temporal Graph Network'e
   geçiş (karşılaştırmalı değerlendirme ile, bkz. Faz 6)
 - Topluluk katkılı "attack path dataset" formatı
-
 ## Katkıda Bulunma
 
 Bu proje açık kaynak bir araştırma platformu olarak tasarlanmıştır.

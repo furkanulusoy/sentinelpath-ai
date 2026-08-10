@@ -62,3 +62,22 @@ truth'a hic degmeden) elenir:
 `LANLAuthCollector`, bu uc katmanli mantikla `NormalizedEvent` uretir.
 Yuksek/dusuk guven ayrimi, ileride raporda ayri ayri gosterilebilir
 (orn. "T1021.002 tespitlerinin %X'i flows.txt ile capraz dogrulanmis").
+
+## Guncelleme -- Gercek Veriyle Bulunan Kapsama Farki (Faz B)
+
+6 saatlik gercek bir calistirmada, auth.txt'teki "Network" tipi
+olaylarin sadece ~%1.85'i flows.txt ile capraz dogrulanabildi
+(Katman 2), geri kalan ~%98'i Katman 3'e (genel T1021, dusuk guven)
+dustu.
+
+Arastirma sonrasi bunun bir HATA DEGIL, LANL'in kendi veri toplama
+metodolojisinin bir sonucu oldugu dogrulandi: flow verisi "sadece
+birkac kilit router konumunda" toplanmis (LANL resmi aciklamasi),
+auth.txt ise AG GENELINDE her kimlik dogrulamayi kapsiyor. Ayni
+switch/segment icindeki host ciftleri arasindaki trafik, hicbir
+router'dan gecmedigi icin flows.txt'te YAPISAL OLARAK hic gorunmez --
+zaman toleransini genisletmek bunu COZMEZ, kok sebep zamanlama degil
+kapsama farkidir.
+
+Bu, uc katmanli tasarimin (ADR 0014) DOGRULUGUNU teyit ediyor: Katman 3
+olmasaydi, bu ~140bin olayin tamami sessizce kaybolurdu.

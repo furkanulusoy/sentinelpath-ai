@@ -541,6 +541,10 @@ section 4, for the rationale.
 
 ## Roadmap
 
+- Adaptive baseline calibration: automatically transition
+  `BaselineBehaviorPort` from a "learning" to an "active detection"
+  state once enough historical data is observed, instead of a fixed
+  calibration window (see ADR 0015 discussion)
 - Keep the ATT&CK Navigator layer export aligned as MITRE's schema evolves
   (the export already targets v4.5 — see the Reporting section above)
 - Sigma rule suggestions (a proactive detection rule for a predicted technique)

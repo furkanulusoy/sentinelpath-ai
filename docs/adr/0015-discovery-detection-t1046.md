@@ -113,3 +113,56 @@ nihai degerlendirme raporunda acikca belirtilecektir.
 eklendi. Bu kenarlar, mevcut `merge_static_topology()` mekanizmasiyla
 Graph Builder'in urettigi ana grafa DISARIDAN eklenir -- Graph
 Builder'in kendi kodu degismedi.
+
+## Guncelleme -- Tek Pencere Karari (Faz B, gercek LANL calistirmasi)
+
+redteam.txt incelendiginde, 749 saldiri olayinin TAMAMININ veri setinin
+ilk ~30 gununde yogunlastigi gorulduu (58 gunluk toplam pencerenin
+yarisindan azi). Bu, ilk tasarlanan "once temiz bir kalibrasyon
+donemi, sonra saldiri donemi" ayrimini (ayri bir "kirletilmemis"
+pencere gerektiriyordu) PRATIK OLARAK imkansiz kildi.
+
+**Karar:** Ayri bir kalibrasyon penceresi ARANMADI. Bunun yerine, Tukey
+IQR yonteminin kendi istatistiksel dayanikliligina (breakdown point,
+~%25'e kadar aykiri deger toleransi) guvenilerek, AYNI pencere (gun
+0-30) hem baseline hesaplamasi HEM degerlendirme icin kullanildi.
+Gerekce: 749 olay, cok sayida farkli host'a dagilmis durumda; tek bir
+host'un kendi 5-dakikalik pencere dagiliminda saldiri-iliskili
+pencerelerin orani, Tukey'in tolerans esiginin cok altinda kalir.
+
+Bu karar, "saldiri gunlerine yakin olaylari elle cikaralim" gibi bir
+alternatifi BILEREK REDDETMISTIR -- bu, redteam.txt'e bakarak "normal"i
+sekillendirmek olurdu, ADR 0015 Karar 3'teki sizinti-onleme ilkesinin
+ihlali olurdu.
+
+`until` parametresi (bkz. LANLFlowsCollector/LANLAuthCollector), sadece
+PERFORMANS icin eklendi -- 58 gunluk verinin tamaminin islenmesini
+onlemek amaciyla, metodolojiyi etkilemez.
+
+## Guncelleme -- Bellek Kisitlamasi Nedeniyle Kucultulmus Degerlendirme Olcegi (Faz B)
+
+Yukarida tanimlanan "Tek Pencere Karari" (gun 0-30) metodolojik olarak
+dogru olsa da, PRATIKTE tam olcekte calistirilamadi. auth.txt'in 30
+gunluk kismini (tahminen yuz milyonlarca satir) tek seferde bellege
+yuklemeye calisan ilk deneme, tuketici sinifi bir bilgisayarda bellek
+tasmasina (memory exhaustion) yol acti -- `collect()` metodunun TUM
+event'leri tek bir Python listesinde biriktiren tasarimi, bu olcekte
+yapisal olarak yetersiz kaldi.
+
+**Durust sonuc:** Resmi, gercek LANL veri seti elimizde olmasina ragmen,
+tam 30 gunluk / tum 749 redteam olayini kapsayan nicel bir Top-K
+dogruluk/MRR degerlendirmesi bu asamada URETILEMEDI. Bunun yerine,
+cok daha kisa bir pencere (ilk 6 saat) kullanilarak sistemin GERCEK
+LANL verisiyle uctan uca DOGRU CALISTIGI basariyla kanitlandi (bkz.
+ADR 0014 guncellemesi) -- ama bu, kucuk olcekli bir dogrulamadir,
+orijinal Faz B'nin buyuk olcekli nicel hedefi degildir.
+
+## Bilinen Sinirlama -- Bellek Mimarisi (yeni)
+
+`LANLAuthCollector`/`LANLFlowsCollector`'in `collect()` metodu, TUM
+event'leri bellekte bir Python listesi olarak biriktirir. Bu, kucuk
+pcap dosyalarinda ve kisa LANL pencerelerinde (6 saat) sorunsuz
+calisir, ama 30 gunluk LANL penceresinde bellek tasmasina yol actigi
+GERCEK CALISTIRMADA dogrulanmistir. Tam olcekli degerlendirme icin
+akis/generator tabanli bir isleme mimarisine gecis GEREKLIDIR --
+bu, README'nin "Gelecek Planı" bolumune de eklenmelidir.
