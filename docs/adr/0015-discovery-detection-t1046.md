@@ -166,3 +166,18 @@ calisir, ama 30 gunluk LANL penceresinde bellek tasmasina yol actigi
 GERCEK CALISTIRMADA dogrulanmistir. Tam olcekli degerlendirme icin
 akis/generator tabanli bir isleme mimarisine gecis GEREKLIDIR --
 bu, README'nin "Gelecek Planı" bolumune de eklenmelidir.
+
+## Guncelleme -- T1046 Kapsam Siniri (Faz B, gercek veriyle bulundu)
+
+24 saatlik gercek bir pencerede, bilinen tek redteam saldirganinin
+(C17693) discovery_detection tarafindan tespit EDILMEDIGI gorulduu.
+Teshis: bu host, 20.486 flow event uretmesine ragmen SADECE 20 farkli
+hedefe baglanmis (genis degil, DAR ve TEKRARLAYAN bir erisim deseni)
+-- kendi baseline esiginin (23.50) bile altinda kalmis, matematiksel
+olarak tespit edilmesi MUMKUN DEGILDI.
+
+Bu, T1046 dedektorunun bir HATASI degil, DOGRU calismasidir: bu saldirgan
+GENIS bir kesif/tarama yapmiyordu, DAR ve hedefli bir erisim deseni
+sergiliyordu -- T1046'nin degil, T1021 ailesinin yakalamasi gereken bir
+davranis. Bu, T1046 ile T1021 arasindaki ayrimin (Discovery vs Lateral
+Movement taktikleri) gercek veride SOMUT olarak dogrulanmasidir.
