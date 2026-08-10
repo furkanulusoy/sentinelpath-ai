@@ -81,3 +81,20 @@ kapsama farkidir.
 
 Bu, uc katmanli tasarimin (ADR 0014) DOGRULUGUNU teyit ediyor: Katman 3
 olmasaydi, bu ~140bin olayin tamami sessizce kaybolurdu.
+
+## Guncelleme -- Outcome Normalizasyon Hatasi (Faz B, kod incelemesinde bulundu)
+
+LANLAuthCollector yazilirken (gercek calistirmadan ONCE), mevcut
+Graph Builder ve Feature Extraction kodu incelenirken bir uyumsuzluk
+bulundu: Graph Builder `outcome == "success"` (kucuk harf) bekliyor,
+Feature Extraction ise `outcome == "failure"` (tam kelime) bekliyor --
+ama LANL'in ham verisi `"Success"`/`"Fail"` formatinda geliyor.
+
+Bu duzeltilmeseydi, LANL verisinden HICBIR AUTHENTICATES_TO kenari
+uretilmeyecekti VE failed_auth_ratio sessizce her zaman 0.0 donecekti
+-- ikisi de fark edilmesi zor, sessiz hatalar olurdu. `_OUTCOME_NORMALIZATION`
+sozlugu bu iki degeri dogru formata cevirir (bkz. lanl_auth_adapter.py).
+
+Bu, "gercek koda entegrasyon oncesi dikkatli inceleme"nin de (sadece
+"gercek veriyle calistirma"nin degil) gercek hata yakalayabildiginin
+bir kanitidir.
