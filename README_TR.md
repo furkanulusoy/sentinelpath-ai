@@ -482,6 +482,35 @@ gerçek hata buldu:
 sentetik test verisinin yapısal olarak ortaya çıkaramayacağı türden bir
 sorun.
 
+### Gerçek Dünya Veri Seti Doğrulaması (LANL)
+
+Kendi kurduğumuz lab'ın ötesinde, sistem
+[LANL Comprehensive Multi-Source Cyber-Security Events veri seti](https://csr.lanl.gov/data/cyber1/)'ne
+karşı da doğrulandı — gerçek bir kurumsal ağdan, 58 günlük, anonimleştirilmiş
+gerçek trafik, etiketli kırmızı takım aktivitesi dahil. Bu veriyi okumak
+için iki yeni Collector adaptörü (`LANLAuthCollector`, `LANLFlowsCollector`)
+yazıldı — sistemin geri kalanında kullanılan **aynı** pipeline'dan geçerek,
+özel bir mantık eklenmeden.
+
+![Gerçek LANL verisiyle dashboard sonucu](docs/media/dashboard_real_data.png)
+![Gerçek LANL verisiyle risk skorları ve öneriler](docs/media/dashboard_real_data2.png)
+
+Bu veri setinden doğrulanmış gerçek bir saldırgan host'una karşı tam
+pipeline'ı çalıştırmak, hiçbirinin sentetik testte hiç ortaya çıkmadığı
+üç gerçek, büyük-ölçek bulgusu ortaya çıkardı:
+- On milyonlarca gerçek kaydı işlerken, toplu-işleme odaklı event
+  toplama tasarımında bir bellek taşması hatası (bkz. ADR 0016)
+- Yoğun, gerçek bir kurumsal ağ grafiğinde Attack Path Engine'in yol
+  aramasında kombinatoryal patlama (tek bir başlangıç noktasından 2.3
+  milyon aday yol) — test edilmiş motor koduna dokunmadan, sadece
+  konfigürasyonla çözüldü (bkz. ADR 0016)
+- T1046 (Discovery) dedektörü ile T1021 (Lateral Movement) teknikleri
+  arasında gerçek bir kapsam sınırı: doğrulanmış gerçek saldırgan, geniş
+  bir tarama değil, dar ve tekrarlayan bir erişim deseni kullanmıştı —
+  bu yüzden discovery dedektörü onu **doğru şekilde** işaretlemedi, bu
+  bir kusur değil, dedektörün hassasiyetini doğrulayan bir bulgu
+  (bkz. ADR 0015)
+
 ## Bilinen Sınırlamalar
 
 ADR'lerle aynı ruhta, burada da dürüst olmak gerekiyor — yukarıdaki
@@ -540,16 +569,62 @@ desenini takip eder. Gerekçe için bkz. ARCHITECTURE.md, bölüm 4.
 
 ## Gelecek Planı
 
-- Adaptif baseline kalibrasyonu: `BaselineBehaviorPort`'un, sabit bir
-  kalibrasyon penceresi yerine, yeterli geçmiş veri gözlemlendiğinde
-  otomatik olarak "öğrenme" durumundan "aktif tespit" durumuna
-  geçmesi (bkz. ADR 0015 tartışması)
-- MITRE ATT&CK Navigator ile tam uyumlu layer export'u
-- Sigma kural önerisi (tahmin edilen tekniğe karşı proaktif tespit kuralı)
-- Sysmon / Zeek gerçek veri format desteği
-- Statik model baseline'dan Graph Neural Network / Temporal Graph Network'e
-  geçiş (karşılaştırmalı değerlendirme ile, bkz. Faz 6)
-- Topluluk katkılı "attack path dataset" formatı
+Hangisinin en çok ileriki işi açacağına göre önceliklendirildi — önce
+temel altyapı, en son ileri düzey ML.
+
+**Katman 1 — Temel altyapı**
+1. Akış/generator tabanlı event işleme (ADR 0016'da bulunan bellek
+   sınırlamasını çözer — herhangi bir büyük ölçekli çalıştırmadan önce gerekli)
+2. Kalıcılık katmanı (SQLite/PostgreSQL) — şu an tüm durum bellekte,
+   yeniden başlatmada kayboluyor
+3. Ground-truth veri seti + baseline karşılaştırması + tam LANL veri
+   setine karşı Top-K/MRR değerlendirmesi (1. maddeye bağımlı)
+
+**Katman 2 — Aracın kendi güvenliği**
+4. `SECURITY.md` + `THREAT_MODEL.md` (telemetri zehirlenmesi, baseline
+   manipülasyonu, kötü niyetli girdi işleme; bağımlılık ve gizli-anahtar
+   taramasının etkinleştirilmesini de içerir)
+5. Bozuk/düşmanca girdi dosyalarına karşı sertleştirilmiş doğrulama
+
+**Katman 3 — Tespit döngüsünü kapatmak**
+6. Aktif olay müdahale modu: doğrulanmış bir ele geçirilmiş host için,
+   önceliklendirilmiş bir eylem listesi ve Jira/ServiceNow tarzı iş
+   akışları için bir taslak talep üretir
+7. Analist geri bildirim döngüsü — bir tahmini doğru/yanlış işaretlemek,
+   gelecekteki denetimli modeller için etiketli bir veri setine doğru ilerlemek
+8. Yanlış-pozitif bastırma — bir analistin tekrarlayan zararsız bir
+   deseni (örn. bir yedekleme sunucusu) işaretleyip bir daha
+   gösterilmemesini sağlaması
+9. Tahmin edilen teknikler için Sigma kural önerileri
+10. Bir risk eşiğinin üzerinde gerçek zamanlı bildirim (Slack/e-posta/webhook)
+11. Tehdit istihbaratı paylaşımı için STIX/TAXII export
+
+**Katman 4 — Veri kaynağı genişliği**
+12. Yerel Sysmon entegrasyonu
+13. Yerel Zeek entegrasyonu
+14. UDP 5-tuple flow toplama (bkz. ADR 0013'teki bilinen sınırlama)
+
+**Katman 5 — Ürün kullanılabilirliği**
+15. Kuruma göre özelleştirilebilir teknik-şiddet ve mitigasyon tabloları
+16. "Neden bu tahmin?" açıklama paneli (kenar ağırlığı, rakip adaylar,
+    baseline güveni, tek bir görünümde)
+17. Host başına tarihsel trend görünümü (Katman 1, 2. maddeye bağımlı)
+18. Rol tabanlı erişim kontrolü
+19. Adaptif baseline kalibrasyonu — `BaselineBehaviorPort`'un sabit bir
+    pencere yerine, yeterli veri gözlemlenince "öğrenme"den "aktif
+    tespit"e geçmesi (bkz. ADR 0015)
+
+**Katman 6 — Üretim sertleştirmesi**
+20. API versiyonlama ve hız sınırlama
+21. Container sertleştirmesi (read-only filesystem, SBOM, imaj sabitleme)
+
+**Katman 7 — İleri düzey ML**
+22. Ağırlıklı Markov baseline'dan Graph Neural Network / Temporal Graph
+    Network'e geçiş, Katman 1'in baseline metriklerine karşı titiz bir
+    karşılaştırmalı değerlendirmeyle (bkz. ADR 0009) — bilerek en sonda:
+    ölçülmemiş bir baseline'a karşı karşılaştırma yapmak anlamsız olurdu
+23. Topluluk katkılı "attack path dataset" formatı
+
 ## Katkıda Bulunma
 
 Bu proje açık kaynak bir araştırma platformu olarak tasarlanmıştır.

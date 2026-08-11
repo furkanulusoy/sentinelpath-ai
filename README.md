@@ -484,6 +484,35 @@ would have caught:
 Both were found, fixed, and documented as ADRs — exactly the kind of
 issue synthetic test data structurally cannot reveal.
 
+### Real-World Dataset Validation (LANL)
+
+Beyond the self-built lab, the system was validated against the
+[LANL Comprehensive Multi-Source Cyber-Security Events dataset](https://csr.lanl.gov/data/cyber1/) —
+58 days of real, anonymized traffic from an actual enterprise network,
+including labeled red-team activity. Two new Collector adapters
+(`LANLAuthCollector`, `LANLFlowsCollector`) were built to ingest this
+data through the exact same pipeline used everywhere else in the
+system — no special-cased logic.
+
+![Gerçek LANL verisiyle dashboard sonucu](docs/media/dashboard_real_data.png)
+![Gerçek LANL verisiyle risk skorları ve öneriler](docs/media/dashboard_real_data2.png)
+
+Running the full pipeline against a confirmed real attacker host from
+this dataset surfaced three genuine, real-scale findings — none of
+which appeared in any synthetic test:
+- A memory-exhaustion bug in the batch-oriented event collection design
+  when processing tens of millions of real records (see ADR 0016)
+- A combinatorial explosion in the Attack Path Engine's path search on
+  a dense, real corporate network graph (2.3M candidate paths from a
+  single start node) — resolved via configuration, not by touching the
+  tested engine code (see ADR 0016)
+- A genuine scope boundary between the T1046 (Discovery) detector and
+  T1021 (Lateral Movement) techniques: the confirmed real attacker used
+  a narrow, repeated access pattern rather than broad scanning, so the
+  discovery detector correctly did *not* flag it — a finding that
+  validates the detector's precision rather than exposing a flaw
+  (see ADR 0015)
+
 ## Known Limitations
 
 Documented here in the same spirit as the ADRs — what this system does
@@ -541,17 +570,61 @@ section 4, for the rationale.
 
 ## Roadmap
 
-- Adaptive baseline calibration: automatically transition
-  `BaselineBehaviorPort` from a "learning" to an "active detection"
-  state once enough historical data is observed, instead of a fixed
-  calibration window (see ADR 0015 discussion)
-- Keep the ATT&CK Navigator layer export aligned as MITRE's schema evolves
-  (the export already targets v4.5 — see the Reporting section above)
-- Sigma rule suggestions (a proactive detection rule for a predicted technique)
-- Native Sysmon / Zeek data format support
-- Migration from the static Markov baseline to a Graph Neural Network /
-  Temporal Graph Network, with a proper comparative evaluation (see Phase 6)
-- A community-contributed "attack path dataset" format
+Prioritized by what unblocks the most future work — foundational
+infrastructure first, advanced ML last.
+
+**Tier 1 — Foundational infrastructure**
+1. Streaming/generator-based event processing (resolves the memory
+   limitation found in ADR 0016 — required before any large-scale run)
+2. A persistence layer (SQLite/PostgreSQL) — currently all state is
+   in-memory and lost on restart
+3. Ground-truth dataset + baseline comparison + Top-K/MRR evaluation
+   against the full LANL dataset (blocked on #1)
+
+**Tier 2 — The tool's own security**
+4. `SECURITY.md` + `THREAT_MODEL.md` (telemetry poisoning, baseline
+   poisoning, malicious input handling; includes enabling dependency
+   and secret scanning)
+5. Hardened input validation for malformed/adversarial input files
+
+**Tier 3 — Closing the detection loop**
+6. Active-incident response mode: given a confirmed compromised host,
+   produce a prioritized action list and a draft ticket for
+   Jira/ServiceNow-style workflows
+7. Analyst feedback loop — mark a prediction as correct/incorrect,
+   building toward a labeled dataset for future supervised models
+8. False-positive suppression — let an analyst mark a recurring benign
+   pattern (e.g. a backup server) so it stops being flagged
+9. Sigma rule suggestions for predicted techniques
+10. Real-time alerting (Slack / email / webhook) above a risk threshold
+11. STIX/TAXII export for threat-intel sharing
+
+**Tier 4 — Data source breadth**
+12. Native Sysmon ingestion
+13. Native Zeek ingestion
+14. UDP 5-tuple flow aggregation (see the known limitation in ADR 0013)
+
+**Tier 5 — Product usability**
+15. Configurable technique-severity and mitigation tables per organization
+16. A "why this prediction?" explanation panel (edge weight, competing
+    candidates, baseline confidence, all in one view)
+17. Historical trend view per host (depends on Tier 1 #2)
+18. Role-based access control
+19. Adaptive baseline calibration — transition `BaselineBehaviorPort`
+    from "learning" to "active detection" once enough data is observed,
+    instead of a fixed window (see ADR 0015)
+
+**Tier 6 — Production hardening**
+20. API versioning and rate limiting
+21. Container hardening (read-only filesystem, SBOM, image pinning)
+
+**Tier 7 — Advanced ML**
+22. Migration from the weighted Markov baseline to a Graph Neural
+    Network / Temporal Graph Network, with a rigorous comparative
+    evaluation against Tier 1's baseline metrics (see ADR 0009) —
+    deliberately last: comparing against an unmeasured baseline would
+    be meaningless
+23. A community-contributed "attack path dataset" format
 
 ## Contributing
 
