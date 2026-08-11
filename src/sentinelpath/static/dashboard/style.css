@@ -422,3 +422,32 @@ button:focus-visible {
   outline: 2px solid #4fa3ff;
   outline-offset: 2px;
 }
+
+/* ================= Iki kolonlu yerlesim (oneriler saga) ================= */
+
+@media (min-width: 900px) {
+  #results:not([hidden]) {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto auto;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  #results .panel:nth-of-type(1) { grid-column: 1; grid-row: 1; }
+  #results .panel:nth-of-type(2) { grid-column: 1; grid-row: 2; }
+  .recommendations-panel {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    position: sticky;
+    top: 1.5rem;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+}
+
+.table-caption {
+  color: #9aa3b5;
+  font-size: 0.82rem;
+  margin-bottom: 0.6rem;
+  font-style: italic;
+}

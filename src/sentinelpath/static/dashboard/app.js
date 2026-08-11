@@ -163,10 +163,22 @@ if (typeof window !== "undefined") {
     renderGraph(report);
   }
 
+  const MIN_DISPLAYED_SCORE = 1.0; // gurultu esigi -- bkz. ADR 0016
+
   function renderRiskTable(report) {
     const tbody = document.getElementById("risk-table-body");
     tbody.innerHTML = "";
-    const sorted = sortRiskScoresDescending(report.risk_scores);
+    const all = sortRiskScoresDescending(report.risk_scores);
+    const sorted = all.filter((rs) => rs.score > MIN_DISPLAYED_SCORE);
+
+    const caption = document.getElementById("risk-table-caption");
+    if (caption) {
+      const hidden = all.length - sorted.length;
+      caption.textContent = hidden > 0
+        ? `${sorted.length} / ${all.length} sonuç gösteriliyor (skor > ${MIN_DISPLAYED_SCORE}, ${hidden} düşük-sinyal sonuç gizlendi)`
+        : `${sorted.length} sonuç gösteriliyor`;
+    }
+
     sorted.forEach((rs, i) => {
       const row = document.createElement("tr");
       row.style.setProperty("--row-index", i);
