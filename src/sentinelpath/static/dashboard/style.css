@@ -133,3 +133,292 @@ th {
   color: var(--text-muted);
   font-size: 13px;
 }
+
+/* ================= Görsel iyileştirmeler ================= */
+
+body {
+  background: radial-gradient(circle at top left, #1a1d2e 0%, #0d0f16 60%);
+  font-family: "Segoe UI", -apple-system, sans-serif;
+}
+
+header {
+  padding: 2rem 2rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #4fa3ff, #ff9d4d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+header .tagline {
+  color: #9aa3b5;
+  font-size: 1rem;
+  margin-top: 0.4rem;
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  margin: 0 2rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#controls button {
+  background: linear-gradient(135deg, #4fa3ff, #3a7fd9);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 14px rgba(79, 163, 255, 0.25);
+}
+
+#controls button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 163, 255, 0.4);
+}
+
+#controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#load-lanl-btn {
+  background: linear-gradient(135deg, #ff9d4d, #e0762a) !important;
+  box-shadow: 0 4px 14px rgba(255, 157, 77, 0.25) !important;
+}
+
+#status-text {
+  color: #9aa3b5;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin: 0 2rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.panel h2 {
+  font-size: 1.15rem;
+  margin-bottom: 1rem;
+  color: #e6e9ed;
+  border-left: 4px solid #4fa3ff;
+  padding-left: 0.7rem;
+}
+
+#graph-container {
+  height: 420px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+#risk-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#risk-table th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  color: #9aa3b5;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#risk-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#risk-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+#recommendations-list {
+  list-style: none;
+  padding: 0;
+}
+
+#recommendations-list li {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #ff9d4d;
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.7rem;
+}
+
+.mitigation-id {
+  color: #ff9d4d;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.rationale {
+  color: #9aa3b5;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+/* ================= Arka plan deseni (tema: graf/ağ) ================= */
+
+.bg-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image:
+    radial-gradient(circle, #4fa3ff 1.5px, transparent 1.5px),
+    linear-gradient(#4fa3ff 1px, transparent 1px),
+    linear-gradient(90deg, #4fa3ff 1px, transparent 1px);
+  background-size: 60px 60px, 60px 60px, 60px 60px;
+}
+
+/* ================= "Nasıl çalışır" bölümü ================= */
+
+.intro-panel {
+  text-align: center;
+}
+
+.pipeline-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.step {
+  flex: 1;
+  min-width: 150px;
+  max-width: 200px;
+  padding: 1rem;
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4fa3ff, #ff9d4d);
+  color: #0d0f16;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.step h3 {
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+  color: #e6e9ed;
+}
+
+.step p {
+  font-size: 0.82rem;
+  color: #9aa3b5;
+  line-height: 1.4;
+}
+
+.step-arrow {
+  color: #4fa3ff;
+  font-size: 1.3rem;
+  opacity: 0.5;
+}
+
+.intro-hint {
+  color: #9aa3b5;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 800px) {
+  .step-arrow { display: none; }
+  .pipeline-steps { flex-direction: column; }
+  .step { max-width: 100%; }
+}
+
+/* ================= Sonuçların belirme geçişi (saf CSS) ================= */
+
+#results:not([hidden]) {
+  animation: reveal 0.5s ease-out;
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#risk-table-body tr {
+  animation: rowIn 0.35s ease-out backwards;
+}
+
+#risk-table-body tr:nth-child(n) {
+  animation-delay: calc(0.03s * var(--row-index, 0));
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ================= Durum metni renklendirmesi ================= */
+
+#status-text.status-loading {
+  color: #4fa3ff;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+#status-text.status-success {
+  color: #6fcf7a;
+  font-weight: 600;
+}
+
+#status-text.status-error {
+  color: #ff6666;
+  font-weight: 600;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ================= Teknik ID'ler icin monospace ================= */
+
+.technique-id {
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.9em;
+  color: #7fc8ff;
+}
+
+/* ================= Klavye erisilebilirligi ================= */
+
+button:focus-visible {
+  outline: 2px solid #4fa3ff;
+  outline-offset: 2px;
+}

@@ -181,3 +181,22 @@ GENIS bir kesif/tarama yapmiyordu, DAR ve hedefli bir erisim deseni
 sergiliyordu -- T1046'nin degil, T1021 ailesinin yakalamasi gereken bir
 davranis. Bu, T1046 ile T1021 arasindaki ayrimin (Discovery vs Lateral
 Movement taktikleri) gercek veride SOMUT olarak dogrulanmasidir.
+
+## Guncelleme -- T1046 Kapsam Siniri (Faz B, gercek veriyle bulundu)
+
+24 saatlik gercek bir pencerede calistirildiginda, discovery_detection'in
+bilinen tek redteam saldirganini (C17693) "en guclu tarama sinyali"
+siralamasinda HIC listelemedigi gorulduu.
+
+**Teshis:** C17693, bu pencerede 20.486 flow event uretmesine ragmen
+SADECE 20 farkli hedefe baglanmis (genis degil, DAR ve TEKRARLAYAN bir
+erisim deseni) -- kendi baseline esiginin (23.50) bile altinda kalmis,
+matematiksel olarak tespit edilmesi MUMKUN DEGILDI.
+
+**Sonuc:** Bu, T1046 dedektorunun bir HATASI degil, DOGRU calismasidir:
+bu saldirgan GENIS bir kesif/tarama yapmiyordu, DAR ve hedefli bir
+erisim deseni sergiliyordu -- T1046'nin degil, T1021 ailesinin
+yakalamasi gereken bir davranis. Bu, T1046 ile T1021 arasindaki
+ayrimin (Discovery vs Lateral Movement taktikleri) gercek veride
+SOMUT olarak dogrulanmasidir -- sentetik bir senaryoda bu ayrim asla
+bu netlikte ortaya cikmazdi.

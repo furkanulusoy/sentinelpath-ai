@@ -5,21 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SentinelPath AI — Dashboard</title>
 <link rel="stylesheet" href="style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230d0f16' stroke='%234fa3ff' stroke-width='6'/><circle cx='50' cy='30' r='8' fill='%234fa3ff'/><circle cx='30' cy='70' r='8' fill='%23ff9d4d'/><circle cx='70' cy='70' r='8' fill='%234fa3ff'/><line x1='50' y1='30' x2='30' y2='70' stroke='%234fa3ff' stroke-width='3'/><line x1='50' y1='30' x2='70' y2='70' stroke='%234fa3ff' stroke-width='3'/></svg>">
 <script src="https://unpkg.com/vis-network@9/standalone/umd/vis-network.min.js"></script>
 </head>
 <body>
+  <div class="bg-pattern" aria-hidden="true"></div>
+
   <header>
     <h1>SentinelPath AI</h1>
-    <p class="tagline">Predict the attack before it happens.</p>
+    <p class="tagline">Predict the attacker's next move — with explainable, evidence-based probabilities.</p>
   </header>
 
   <main>
-    <section id="controls">
+    <section id="controls" aria-label="Senaryo seçimi">
       <button id="load-demo-btn">Demo senaryosunu çalıştır</button>
-      <span id="status-text"></span>
+      <button id="load-lanl-btn">Gerçek LANL verisiyle çalıştır</button>
+      <span id="status-text" aria-live="polite"></span>
     </section>
 
-    <section id="results" hidden>
+    <section id="how-it-works" class="panel intro-panel">
+      <div class="pipeline-steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <h3>Topla</h3>
+          <p>Ağ/kimlik doğrulama olaylarını (pcap, LANL log) ortak bir formata çevirir.</p>
+        </div>
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <h3>Grafiği Kur</h3>
+          <p>Gözlemlenen davranıştan bir saldırı grafiği (attack graph) oluşturur.</p>
+        </div>
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <h3>Tahmin Et</h3>
+          <p>Ağırlıklı Markov modeliyle olası sonraki adımları sıralar.</p>
+        </div>
+        <div class="step-arrow" aria-hidden="true">→</div>
+        <div class="step">
+          <span class="step-num">4</span>
+          <h3>Puanla &amp; Öner</h3>
+          <p>Risk skoru üretir, MITRE ATT&amp;CK'e dayalı önlemler önerir.</p>
+        </div>
+      </div>
+      <p class="intro-hint">Yukarıdaki butonlardan birine tıklayarak pipeline'ı gerçek verilerle çalıştırın.</p>
+    </section>
+
+    <section id="results" hidden aria-label="Analiz sonuçları">
       <div class="panel">
         <h2>Saldırı grafiği (tahmin edilen sonraki adımlar)</h2>
         <div id="graph-container"></div>

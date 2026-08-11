@@ -33,10 +33,15 @@ function riskColor(score) {
  * skoruna gore renklendirilmis.
  */
 function buildGraphData(report) {
+  const filtered = report.risk_scores
+    .filter((rs) => rs.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 15);
+
   const nodeIds = new Set([report.target_node]);
   const edges = [];
 
-  for (const rs of report.risk_scores) {
+  for (const rs of filtered) {
     nodeIds.add(rs.target_node);
     edges.push({
       from: report.target_node,
@@ -84,9 +89,10 @@ if (typeof window !== "undefined") {
   const DEMO_EVENTS = buildDemoEvents();
 
   document.getElementById("load-demo-btn").addEventListener("click", runDemoScenario);
+  document.getElementById("load-lanl-btn").addEventListener("click", runLanlScenario);
 
   async function runDemoScenario() {
-    setStatus("Pipeline calistiriliyor...");
+    setStatus("Pipeline calistiriliyor...", "loading");
     document.getElementById("load-demo-btn").disabled = true;
 
     const requestBody = {
@@ -120,8 +126,34 @@ if (typeof window !== "undefined") {
     }
   }
 
-  function setStatus(text) {
-    document.getElementById("status-text").textContent = text;
+  async function runLanlScenario() {
+    setStatus("Gercek LANL verisi yukleniyor...", "loading");
+    document.getElementById("load-lanl-btn").disabled = true;
+    try {
+      const payloadResponse = await fetch("/dashboard/lanl_demo_payload.json");
+      const requestBody = await payloadResponse.json();
+
+      setStatus("Pipeline calistiriliyor (gercek veri)...", "loading");
+      const response = await fetch("/api/v1/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) throw new Error(`API hatasi (${response.status})`);
+      const report = await response.json();
+      renderReport(report);
+      setStatus(`Tamamlandi (GERCEK LANL verisi) -- ${report.risk_scores.length} risk skoru.`);
+    } catch (err) {
+      setStatus(`Hata: ${err.message}`);
+    } finally {
+      document.getElementById("load-lanl-btn").disabled = false;
+    }
+  }
+
+  function setStatus(text, state) {
+    const el = document.getElementById("status-text");
+    el.textContent = text;
+    el.className = state ? `status-${state}` : "";
   }
 
   function renderReport(report) {
@@ -134,11 +166,13 @@ if (typeof window !== "undefined") {
   function renderRiskTable(report) {
     const tbody = document.getElementById("risk-table-body");
     tbody.innerHTML = "";
-    for (const rs of sortRiskScoresDescending(report.risk_scores)) {
+    const sorted = sortRiskScoresDescending(report.risk_scores);
+    sorted.forEach((rs, i) => {
       const row = document.createElement("tr");
+      row.style.setProperty("--row-index", i);
       row.innerHTML = `
         <td>${rs.target_node}</td>
-        <td>${rs.technique_id}</td>
+        <td class="technique-id">${rs.technique_id}</td>
         <td>${rs.probability.toFixed(2)}</td>
         <td>${rs.asset_criticality.toFixed(2)}</td>
         <td>${rs.technique_severity.toFixed(2)}</td>
@@ -146,7 +180,7 @@ if (typeof window !== "undefined") {
         <td>${formatConfidence(rs.baseline_confidence)}</td>
       `;
       tbody.appendChild(row);
-    }
+    });
   }
 
   function renderRecommendations(report) {
@@ -166,10 +200,42 @@ if (typeof window !== "undefined") {
     const container = document.getElementById("graph-container");
     const { nodes, edges } = buildGraphData(report);
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+    // Fizik-tabanli (O(n^2), yuzlerce node'da tarayiciyi kilitledigi
+    // GERCEK LANL testinde bulundu) yerine, grafimizin zaten sahip
+    // oldugu yildiz/agac seklini kullanan HIYERARSIK bir duzen --
+    // deterministik, hizli, ve saldirgan->hedef akisini gorsel olarak
+    // daha anlamli gosteriyor.
     const options = {
-      nodes: { shape: "dot", size: 18, font: { color: "#e6e9ed" } },
-      edges: { font: { color: "#e6e9ed", size: 11 }, arrows: "to", smooth: true },
-      physics: { stabilization: true },
+      nodes: {
+        shape: "dot",
+        size: 24,
+        borderWidth: 3,
+        borderWidthSelected: 4,
+        font: { color: "#ffffff", size: 15, face: "Segoe UI, sans-serif", strokeWidth: 3, strokeColor: "#0d0f16" },
+        shadow: { enabled: true, color: "rgba(0,0,0,0.45)", size: 10, x: 2, y: 3 },
+      },
+      edges: {
+        font: {
+          color: "#ffffff",
+          size: 13,
+          face: "Segoe UI, sans-serif",
+          strokeWidth: 5,
+          strokeColor: "#0d0f16",
+          align: "top",
+        },
+        arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+        smooth: { type: "curvedCW", roundness: 0.15 },
+        shadow: { enabled: true, color: "rgba(0,0,0,0.3)", size: 6 },
+      },
+      layout: {
+        hierarchical: {
+          direction: "LR",
+          sortMethod: "directed",
+          levelSeparation: 220,
+          nodeSpacing: 140,
+        },
+      },
+      physics: false,
     };
     new vis.Network(container, data, options);
   }
