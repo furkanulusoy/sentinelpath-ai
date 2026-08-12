@@ -635,3 +635,4 @@ cevabı zaten orada gerekçeli olarak yazılıdır.
 ## Lisans
 
 AGPL-3.0 — bkz. [LICENSE](LICENSE).
+
