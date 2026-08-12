@@ -5,7 +5,9 @@
 ![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**Predict the attacker's next move — with explainable, evidence-based probabilities.**
+Predict the attacker's next move — with explainable, evidence-based probabilities.
+
+![SentinelPath AI — MITRE ATT&CK-based attack path prediction, validated on real network traffic and the LANL dataset](docs/media/sentinelpath.png)
 
 [Türkçe README](README_TR.md)
 

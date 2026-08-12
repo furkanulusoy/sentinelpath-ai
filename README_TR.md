@@ -6,6 +6,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 **Predict the attacker's next move — with explainable, evidence-based probabilities.**
+![SentinelPath AI — MITRE ATT&CK tabanlı saldırı yolu tahmini, gerçek ağ trafiği ve LANL veri setiyle doğrulandı](docs/media/sentinelpath.png)
 
 [English README](README.md)
 
