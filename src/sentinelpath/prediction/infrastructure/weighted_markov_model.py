@@ -33,10 +33,25 @@ CandidatePath'in her hop icin kaynak node'un toplam cikis agirligini
 da tasimasini gerektirirdi (ADR 0008'i bir kez daha genisletmek) --
 bu, MVP kapsaminin disina cikildigi icin bilerek ERTELENDI ve burada
 acikca belgeleniyor.
+
+UCUNCU DURUSTLUK NOTU (SentinelBench ile gercek veride bulundu, ADR
+0017): Ham agirlik (weight = Graph Builder'da gozlemlenen HAM EVENT
+SAYISI, bkz. networkx_adapter.py) dogrudan carpana sokuluyordu. Gercek
+LANL verisiyle (C17693 senaryosu) test edildiginde, bunun ciddi bir
+sorun oldugu ortaya cikti: yuksek hacimli MESRU trafik (orn. 496 kez
+tekrarlanan bir servis baglantisi) skoru, nadir ama GERCEK bir kimlik
+dogrulama olayini (weight=1) 744 KAT ezebiliyordu -- gercek redteam.txt
+saldirganinin tum hedefleri, 343 adayin en altina (~250. sira) dusuyordu.
+Duzeltme: agirlik, kullanilmadan once log1p ile sikistirilir. Bu,
+siralamayi KORUR (daha fazla gozlem hala daha guclu kanittir) ama
+acik uctu buyumeyi sinirlar (744 kat fark ~13 kata indi). Bu, projenin
+Tukey IQR'da (discovery_detection) kullandigi ayni "agir kuyruklu
+dagilimlari sikistirma" felsefesinin burada da uygulanmasidir.
 """
 
 from __future__ import annotations
 
+import math
 from datetime import UTC, datetime
 
 from sentinelpath.core.models import (
@@ -109,7 +124,12 @@ class WeightedMarkovPredictionModel:
         for path in candidate_paths:
             score = 1.0
             for relation, weight in zip(path.hop_relations, path.hop_weights, strict=True):
-                score *= weight * self._relation_priors.get(relation, 1.0)
+                # bkz. modul docstring'i "UCUNCU DURUSTLUK NOTU" / ADR 0017:
+                # ham agirlik (gozlemlenen event SAYISI) dogrudan carpana
+                # sokulmadan once log1p ile sikistirilir -- yuksek hacimli
+                # mesru trafigin nadir ama gercek kanitlari ezmesini onler.
+                dampened_weight = math.log1p(weight)
+                score *= dampened_weight * self._relation_priors.get(relation, 1.0)
             raw_scores.append(score)
 
         # Adim 2: sadece SON hop'ta bilinen teknigi olan yollari
