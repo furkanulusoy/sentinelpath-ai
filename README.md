@@ -517,6 +517,12 @@ which appeared in any synthetic test:
 
 ## Known Limitations
 
+> **Methodology note:** This project's ground-truth leakage avoidance
+> discipline (labeling, parameter-tuning, and baseline contamination)
+> is documented separately in [`LEAKAGE_PREVENTION.md`](LEAKAGE_PREVENTION.md)
+> — useful independently of this codebase if you're evaluating your
+> own attack-path prediction system.
+
 Documented here in the same spirit as the ADRs — what this system does
 *not* yet do, rather than letting the "10/10 phases done" framing above
 overstate it:

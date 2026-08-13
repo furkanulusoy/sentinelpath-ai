@@ -514,6 +514,12 @@ pipeline'ı çalıştırmak, hiçbirinin sentetik testte hiç ortaya çıkmadı�
 
 ## Bilinen Sınırlamalar
 
+> **Metodoloji notu:** Bu projenin ground-truth sızıntısını önleme
+> disiplini (etiketleme, parametre-ayarlama ve baseline kirlenmesi)
+> ayrı bir belgede belgelenmiştir: [`LEAKAGE_PREVENTION.md`](LEAKAGE_PREVENTION.md)
+> — kendi saldırı-yolu tahmin sisteminizi değerlendiriyorsanız, bu
+> kod tabanından bağımsız olarak da faydalı olabilir.
+
 ADR'lerle aynı ruhta, burada da dürüst olmak gerekiyor — yukarıdaki
 "10/10 faz tamamlandı" çerçevesinin abartıya kaçmaması için, bu
 sistemin *henüz* yapmadıkları:
