@@ -36,6 +36,9 @@ from sentinelpath.core.models import (
     NormalizedEvent,
     RelationType,
 )
+from sentinelpath.logging_setup import get_logger
+
+logger = get_logger(__name__)
 
 TECHNIQUE_ID = "T1046"
 
@@ -126,11 +129,18 @@ def _detect_for_host(
 
 
 def _passes_volume_check(window_events: list[NormalizedEvent]) -> bool:
-    volumes = [
-        int(e.metadata["byte_count"])
-        for e in window_events
-        if "byte_count" in e.metadata
-    ]
+    volumes = []
+    for e in window_events:
+        if "byte_count" not in e.metadata:
+            continue
+        try:
+            volumes.append(int(e.metadata["byte_count"]))
+        except (ValueError, KeyError):
+            logger.warning(
+                "scan_detector_bad_byte_count",
+                event_id=e.event_id,
+                byte_count=e.metadata.get("byte_count"),
+            )
     if not volumes:
         # Bu veri kaynagi hacim bilgisi tasimiyor (orn. pcap Collector)
         # -- sadece fan-out sinyaline guveniliyor (bkz. modul docstring'i).

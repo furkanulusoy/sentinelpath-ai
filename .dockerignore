@@ -35,3 +35,6 @@ scripts/
 .vscode/
 .idea/
 .DS_Store
+
+# --- AI ---
+.claude/

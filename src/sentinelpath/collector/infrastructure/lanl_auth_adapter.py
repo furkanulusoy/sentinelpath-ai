@@ -127,7 +127,11 @@ class LANLAuthCollector:
         if logon_type in IGNORED_LOGON_TYPES:
             return None
 
-        timestamp = lanl_seconds_to_datetime(int(time_s))
+        try:
+            timestamp = lanl_seconds_to_datetime(int(time_s))
+        except ValueError:
+            logger.warning("lanl_auth_bad_time", line_num=line_num, time_s=time_s)
+            return None
         normalized_outcome = _OUTCOME_NORMALIZATION.get(outcome.lower(), outcome.lower())
         metadata = {
             "outcome": normalized_outcome,

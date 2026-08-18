@@ -15,6 +15,8 @@ baglantidan (network_reachable) ONCE gelir.
 
 from __future__ import annotations
 
+from itertools import islice
+
 import networkx as nx
 
 from sentinelpath.core.models import AttackGraphSnapshot, CandidatePath, RelationType
@@ -26,6 +28,11 @@ RELATION_PRIORITY: dict[RelationType, int] = {
     RelationType.TRUSTS: 1,
     RelationType.NETWORK_REACHABLE: 0,
 }
+
+# nx.all_simple_paths donen generator'i sinirlamiyor -- yogun graph'larda
+# hop cutoff'a ragmen yol sayisi katlanarak artabilir (algoritmik-karmasiklik
+# DoS vektoru). Bu butce, ne kadar yol enumere/isle edilecegini sinirlar.
+MAX_ENUMERATED_PATHS = 10_000
 
 
 def _dominant_edge_data(graph: nx.MultiDiGraph, source: str, target: str) -> dict:
@@ -70,9 +77,10 @@ class NetworkXAttackPathEngine:
         if not possible_targets:
             return []
 
-        for path in nx.all_simple_paths(
+        all_paths = nx.all_simple_paths(
             simple_graph, source=start_node, target=possible_targets, cutoff=max_hops
-        ):
+        )
+        for path in islice(all_paths, MAX_ENUMERATED_PATHS):
             if len(path) < 2:
                 continue  # trivial: hic hop yok
 

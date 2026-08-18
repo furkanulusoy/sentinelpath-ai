@@ -120,9 +120,15 @@ class LANLFlowsCollector:
         else:
             service_name, technique_id = f"port_{dst_port}", None
 
+        try:
+            timestamp = lanl_seconds_to_datetime(int(time_s))
+        except ValueError:
+            logger.warning("lanl_flows_bad_time", line_num=line_num, time_s=time_s)
+            return None
+
         return NormalizedEvent(
             event_id=f"lanl-flow-{line_num}",
-            timestamp=lanl_seconds_to_datetime(int(time_s)),
+            timestamp=timestamp,
             source=EventSource.NETWORK,
             source_host=src,
             target_host=dst,

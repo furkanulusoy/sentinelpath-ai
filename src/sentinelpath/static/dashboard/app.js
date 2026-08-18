@@ -182,15 +182,38 @@ if (typeof window !== "undefined") {
     sorted.forEach((rs, i) => {
       const row = document.createElement("tr");
       row.style.setProperty("--row-index", i);
-      row.innerHTML = `
-        <td>${rs.target_node}</td>
-        <td class="technique-id">${rs.technique_id}</td>
-        <td>${rs.probability.toFixed(2)}</td>
-        <td>${rs.asset_criticality.toFixed(2)}</td>
-        <td>${rs.technique_severity.toFixed(2)}</td>
-        <td style="color:${riskColor(rs.score)}; font-weight:600">${rs.score.toFixed(1)}</td>
-        <td>${formatConfidence(rs.baseline_confidence)}</td>
-      `;
+
+      const tdTarget = document.createElement("td");
+      tdTarget.textContent = rs.target_node;
+      row.appendChild(tdTarget);
+
+      const tdTechnique = document.createElement("td");
+      tdTechnique.className = "technique-id";
+      tdTechnique.textContent = rs.technique_id;
+      row.appendChild(tdTechnique);
+
+      const tdProbability = document.createElement("td");
+      tdProbability.textContent = rs.probability.toFixed(2);
+      row.appendChild(tdProbability);
+
+      const tdCriticality = document.createElement("td");
+      tdCriticality.textContent = rs.asset_criticality.toFixed(2);
+      row.appendChild(tdCriticality);
+
+      const tdSeverity = document.createElement("td");
+      tdSeverity.textContent = rs.technique_severity.toFixed(2);
+      row.appendChild(tdSeverity);
+
+      const tdScore = document.createElement("td");
+      tdScore.style.color = riskColor(rs.score);
+      tdScore.style.fontWeight = "600";
+      tdScore.textContent = rs.score.toFixed(1);
+      row.appendChild(tdScore);
+
+      const tdConfidence = document.createElement("td");
+      tdConfidence.textContent = formatConfidence(rs.baseline_confidence);
+      row.appendChild(tdConfidence);
+
       tbody.appendChild(row);
     });
   }
@@ -200,10 +223,18 @@ if (typeof window !== "undefined") {
     list.innerHTML = "";
     for (const rec of report.recommendations) {
       const li = document.createElement("li");
-      li.innerHTML = `
-        <span class="mitigation-id">[${rec.mitigation_id || "N/A"}]</span> ${rec.action}
-        <div class="rationale">${rec.rationale}</div>
-      `;
+
+      const mitigationSpan = document.createElement("span");
+      mitigationSpan.className = "mitigation-id";
+      mitigationSpan.textContent = `[${rec.mitigation_id || "N/A"}]`;
+      li.appendChild(mitigationSpan);
+      li.appendChild(document.createTextNode(` ${rec.action}`));
+
+      const rationaleDiv = document.createElement("div");
+      rationaleDiv.className = "rationale";
+      rationaleDiv.textContent = rec.rationale;
+      li.appendChild(rationaleDiv);
+
       list.appendChild(li);
     }
   }

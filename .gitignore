@@ -43,3 +43,6 @@ htmlcov/
 
 # --- LanlData ---
 scripts/lanl_data/
+
+# --- AI ---
+.claude/

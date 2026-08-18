@@ -41,10 +41,11 @@ class NormalizedEventRequest(BaseModel):
 class PredictRequest(BaseModel):
     """POST /api/v1/predict icin istek govdesi."""
 
-    events: list[NormalizedEventRequest]
+    events: list[NormalizedEventRequest] = Field(max_length=1000)
     known_hosts: list[str] = Field(
+        max_length=200,
         description="Feature vektoru cikarilacak ve graf'ta node olarak "
-        "yer alacak TUM host kimlikleri (bkz. ADR 0005)."
+        "yer alacak TUM host kimlikleri (bkz. ADR 0005).",
     )
     start_node: str = Field(description="Analiz edilecek, zaten ele gecirilmis host.")
     feature_window_start: datetime
