@@ -11,6 +11,22 @@ Predict the attacker's next move — with explainable, evidence-based probabilit
 
 [Türkçe README](README_TR.md)
 
+## Quickstart
+
+Try the full pipeline end-to-end in under 2 minutes — no external data required, uses a built-in demo scenario.
+
+```bash
+git clone https://github.com/furkanulusoy/sentinelpath-ai.git
+cd sentinelpath-ai
+python3 -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e ".[api]"
+uvicorn sentinelpath.api.main:app --reload
+```
+
+Open `http://localhost:8000/dashboard/` and click **"Run demo scenario"** — a risk-score table, recommendations, and an attack graph will appear. API docs: `http://localhost:8000/docs`.
+
+Want to go deeper? Jump to [Architecture](#architecture) or walk through each pipeline stage below.
+
 ## Why SentinelPath AI?
 
 ✓ Ranks the most likely next attack techniques from a partially observed attack path
@@ -426,7 +442,7 @@ documented in their own sections above. This reflects a completed
 research/prototype system and has not yet been validated at enterprise
 production scale.
 
-> The current test suite is passing in CI (111 tests). The system has
+> The current test suite is passing in CI (159 tests). The system has
 > been validated end-to-end against real network traffic (Wireshark
 > captures), but not yet in a large-scale production environment. See
 > "Known Limitations" and "Roadmap" below.

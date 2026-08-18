@@ -30,8 +30,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
-      - name: Bagimliliklari kur (TUM opsiyonel gruplar -- gnn haric, bkz. ADR 0012)
-        run: pip install -e ".[dev,api,network,ml]"
+      - name: Bagimliliklari kur (pinned, requirements.lock -- gnn haric, bkz. ADR 0012)
+        run: pip install -r requirements.lock -e . --no-deps
 
       - name: Lint (ruff)
         run: ruff check src tests
